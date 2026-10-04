@@ -1,0 +1,275 @@
+{
+  "schema_version": 1,
+  "tone": "暗",
+  "mode": "production",
+  "config": {
+    "tone": "暗",
+    "accent": "#23FE02",
+    "secondary_accent": "#FF4D4D",
+    "background": "#000000",
+    "account_name": "{账号名}",
+    "bookmark": false,
+    "watermark_style": "neutral",
+    "watermark_text": "账号名",
+    "cover_only": true,
+    "background_profile": "mixed-v2",
+    "visual_profile": "v7-richness",
+    "text_color_profile": "v7.4-alternation",
+    "visual_revision_profile": "general",
+    "require_face_every_page": true,
+    "avoid_watermark_overlap": true
+  },
+  "delivery": {
+    "main_cover": "D",
+    "cover_c": "optional",
+    "size": [
+      1440,
+      1920
+    ]
+  },
+  "pages": [
+    {
+      "layout": "cover",
+      "background": "#000000",
+      "bookmark": false,
+      "border": false,
+      "watermark": false,
+      "elements": [
+        {
+          "kind": "image",
+          "path": "assets/封面.jpg",
+          "source_id": "cover-source",
+          "box": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "fit": "cover",
+          "role": "background",
+          "focus": [
+            0.5,
+            0.35
+          ],
+          "darken": 0.35,
+          "face_boxes": [],
+          "face_detection_method": "待补Vision或人工确认"
+        },
+        {
+          "kind": "text",
+          "text": "人物与时代：",
+          "box": [
+            0.05,
+            0.72,
+            0.9,
+            0.1
+          ],
+          "size": 140,
+          "font": "cover-title",
+          "fill": "#FFFFFF",
+          "effect": "3d",
+          "tight_punctuation": "all"
+        },
+        {
+          "kind": "text",
+          "text": "经证实的冲突句",
+          "box": [
+            0.05,
+            0.83,
+            0.9,
+            0.11
+          ],
+          "size": 128,
+          "font": "cover-title",
+          "fill": "#23FE02",
+          "effect": "3d",
+          "tight_punctuation": "all"
+        }
+      ]
+    },
+    {
+      "layout": "split",
+      "background": "#000000",
+      "paper_texture": false,
+      "skeleton": "左右照片",
+      "text_position": "left",
+      "visual_focus": "经目检的单一主角",
+      "elements": [
+        {
+          "kind": "dark_backdrop",
+          "path": "assets/图源.jpg",
+          "source_id": "待补原图ID",
+          "box": [
+            0,
+            0.3,
+            1,
+            0.62
+          ],
+          "fit": "cover",
+          "role": "background",
+          "major_image": true,
+          "hero": true,
+          "hero_form": "photo",
+          "face_verified": false,
+          "face_boxes": [],
+          "face_detection_method": "待补Vision或人工确认",
+          "subject_mask": "assets/人物测量mask.png",
+          "color_source": true,
+          "darken": 0.5,
+          "fade_fraction": 0.25
+        },
+        {
+          "kind": "text",
+          "text": "经查证的场景",
+          "box": [
+            0.07,
+            0.055,
+            0.86,
+            0.1
+          ],
+          "size": 110,
+          "font": "headline",
+          "fill": "#23FE02",
+          "callout": true,
+          "heading_level": "primary",
+          "text_role": "heading",
+          "effect": "3d",
+          "tight_punctuation": "all"
+        },
+        {
+          "kind": "text",
+          "text": "把具体人物、动作和时间写在这里。\n只写原始资料能支持的细节。",
+          "box": [
+            0.07,
+            0.2,
+            0.85,
+            0.32
+          ],
+          "size": 60,
+          "font": "body",
+          "fill": "#FFFFFF",
+          "lineheight": 90
+        },
+        {
+          "kind": "text",
+          "text": "留下一个下一页的问题",
+          "box": [
+            0.07,
+            0.75,
+            0.86,
+            0.11
+          ],
+          "size": 100,
+          "font": "serif-bold",
+          "fill": "#FFFFFF",
+          "callout": true
+        },
+        {
+          "kind": "text",
+          "text": "一个待核实的细节",
+          "box": [
+            0.07,
+            0.91,
+            0.82,
+            0.045
+          ],
+          "size": 60,
+          "font": "serif-semibold",
+          "fill": "#23FE02"
+        }
+      ]
+    },
+    {
+      "layout": "collage",
+      "background": "#000000",
+      "paper_texture": false,
+      "skeleton": "上下叠图",
+      "text_position": "upper-lower",
+      "visual_focus": "经目检的单一主角",
+      "elements": [
+        {
+          "kind": "dark_backdrop",
+          "path": "assets/图源.jpg",
+          "source_id": "待补原图ID",
+          "box": [
+            0,
+            0.3,
+            1,
+            0.62
+          ],
+          "fit": "cover",
+          "role": "background",
+          "major_image": true,
+          "hero": true,
+          "hero_form": "photo",
+          "face_verified": false,
+          "face_boxes": [],
+          "face_detection_method": "待补Vision或人工确认",
+          "subject_mask": "assets/人物测量mask.png",
+          "color_source": true,
+          "darken": 0.5,
+          "fade_fraction": 0.25
+        },
+        {
+          "kind": "text",
+          "text": "经查证的场景",
+          "box": [
+            0.07,
+            0.055,
+            0.86,
+            0.1
+          ],
+          "size": 110,
+          "font": "headline",
+          "fill": "#23FE02",
+          "callout": true,
+          "heading_level": "primary",
+          "text_role": "heading",
+          "effect": "3d",
+          "tight_punctuation": "all"
+        },
+        {
+          "kind": "text",
+          "text": "把具体人物、动作和时间写在这里。\n只写原始资料能支持的细节。",
+          "box": [
+            0.07,
+            0.2,
+            0.85,
+            0.32
+          ],
+          "size": 60,
+          "font": "body",
+          "fill": "#FFFFFF",
+          "lineheight": 90
+        },
+        {
+          "kind": "text",
+          "text": "留下一个下一页的问题",
+          "box": [
+            0.07,
+            0.75,
+            0.86,
+            0.11
+          ],
+          "size": 100,
+          "font": "serif-bold",
+          "fill": "#FFFFFF",
+          "callout": true
+        },
+        {
+          "kind": "text",
+          "text": "一个待核实的细节",
+          "box": [
+            0.07,
+            0.91,
+            0.82,
+            0.045
+          ],
+          "size": 60,
+          "font": "serif-semibold",
+          "fill": "#23FE02"
+        }
+      ]
+    }
+  ]
+}

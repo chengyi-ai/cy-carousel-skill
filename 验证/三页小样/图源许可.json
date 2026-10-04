@@ -1,0 +1,32 @@
+[
+  {
+    "source_id": "cycle-photo.png",
+    "file": "assets/cycle-photo.png",
+    "source_url": "https://www.loc.gov/pictures/item/2011661551/",
+    "license_url": "https://www.loc.gov/pictures/item/2011661551/",
+    "rights": "No known restrictions on publication",
+    "sha256": "4b80b8b620f3d682cdb20540e96189901cb9aadda35ebcd517f1605f54bd7ed0",
+    "face_method": "manual-verified",
+    "processing": "等比裁切/压暗，无生成伪史料"
+  },
+  {
+    "source_id": "dress-reform.jpg",
+    "file": "assets/dress-reform.jpg",
+    "source_url": "https://www.loc.gov/pictures/item/2012648650/",
+    "license_url": "https://www.loc.gov/pictures/item/2012648650/",
+    "rights": "No known restrictions on publication",
+    "sha256": "f80fe7ca8ed8aa6378bedc495561ed2e6d2de55e779aab7fd70f3f0c577d9e47",
+    "face_method": "manual-verified",
+    "processing": "等比裁切/压暗，无生成伪史料"
+  },
+  {
+    "source_id": "new-woman.jpg",
+    "file": "assets/new-woman.jpg",
+    "source_url": "https://www.loc.gov/pictures/item/2012648801/",
+    "license_url": "https://www.loc.gov/pictures/item/2012648801/",
+    "rights": "No known restrictions on publication",
+    "sha256": "cbd4e8e0317de91eba57f8db9cfeab92c0b5d317c9b68f8442f4397d1a0f124d",
+    "face_method": "manual-verified",
+    "processing": "等比裁切/压暗，无生成伪史料"
+  }
+]

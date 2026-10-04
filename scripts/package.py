@@ -1,0 +1,37 @@
+#!/usr/bin/env python3
+"""把已检查的自有稿整理成发布文件；输出新目录，不上传/发布。"""
+from pathlib import Path
+from PIL import Image,ImageDraw
+import argparse,json,shutil,math,hashlib
+from check_all import check_note
+from 图像等比 import cover_cell
+
+def deliver(note,pages,out,report=None,assets_root=None,cover_c=None):
+ note=Path(note);pages=Path(pages);out=Path(out)
+ if out.exists() and any(out.iterdir()):raise ValueError('交付目录非空，拒绝覆盖现有成品')
+ result=check_note(note/'页面脚本.json',pages,report,assets_root)
+ if not result['passed']:raise ValueError('检查未通过，禁止交付：'+str(result['errors']))
+ required=['标题.txt','正文.txt','置顶评论.txt','来源.md']
+ for f in required:
+  if not (note/f).is_file() or not (note/f).read_text().strip():raise ValueError('缺文稿：'+f)
+ data=json.loads((note/'页面脚本.json').read_text());out.mkdir(parents=True,exist_ok=True);files=[]
+ for i in range(1,len(data['pages'])+1):
+  name='01-封面.png' if i==1 else f'{i:02}.png';source=pages/f'p{i:02}.png';target=out/name
+  shutil.copy2(source,target);files.append(target)
+ if cover_c:
+  with Image.open(cover_c) as im:
+   if im.size!=(1440,1920):raise ValueError('C备选尺寸必须1440×1920')
+  shutil.copy2(cover_c,out/'封面备选-无字版.png')
+ for f in required:shutil.copy2(note/f,out/f)
+ cols=5 if len(files)>6 else 3;cell=(360,480);gap=14;label=28;rows=math.ceil(len(files)/cols)
+ grid=Image.new('RGB',(cols*(360+gap)+gap,rows*(480+label+gap)+gap),'#333333');d=ImageDraw.Draw(grid);audit=[]
+ for i,p in enumerate(files):
+  with Image.open(p) as im:pic=cover_cell(im,cell,audit,source_name=p.name)
+  x=gap+i%cols*(360+gap);y=gap+i//cols*(480+label+gap);grid.paste(pic,(x,y));d.text((x,y+485),f'{i+1:02}',fill='white')
+ grid.save(out/'全套预览.jpg',quality=93)
+ manifest={'technical_passed':True,'scope':result['scope'],'published':False,'human_review':'事实/许可/目检/盲测须另行验收','cover':'01-封面.png','preview_cells':audit,'files':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in files},'placeholder_account':data.get('config',{}).get('account_name','{账号名}')=='{账号名}'}
+ (out/'交付清单.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2));return manifest
+
+if __name__=='__main__':
+ ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--note',type=Path,required=True);ap.add_argument('--pages',type=Path,required=True);ap.add_argument('--out',type=Path,required=True);ap.add_argument('--report',type=Path);ap.add_argument('--assets-root',type=Path);ap.add_argument('--cover-c',type=Path);a=ap.parse_args()
+ r=deliver(a.note,a.pages,a.out,a.report,a.assets_root,a.cover_c);print(json.dumps({'technical_passed':True,'scope':r['scope'],'images':len(r['files']),'published':False},ensure_ascii=False))

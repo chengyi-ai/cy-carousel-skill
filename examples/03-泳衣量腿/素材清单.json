@@ -1,0 +1,187 @@
+{
+  "assets_root": "调用者提供外部原始素材目录；本清单全部相对该目录",
+  "assets": [
+    {
+      "path": "样稿/03-泳衣量腿/assets/norton-hi.jpg",
+      "sha256": "5197d1e05f8ab3be2cc2b1af1fe2b52fef529f76f2336d3bda236b4ff3b275c3",
+      "kind": "image",
+      "source_id": "norton",
+      "bundled": false
+    },
+    {
+      "path": "样稿/03-泳衣量腿/assets/norton-subject-mask.png",
+      "sha256": "cf72b82f224cea8858166ed46ee0ac1e17e3e63bfe3e8bd048b04733765aeeb2",
+      "kind": "mask",
+      "source_id": "norton",
+      "bundled": false
+    },
+    {
+      "path": "样稿/03-泳衣量腿/assets/beach21a-hi.jpg",
+      "sha256": "0b4f0e6f41779c0015de3e412ac03c94514b81af07fabb9b5cce86aecf181101",
+      "kind": "image",
+      "source_id": "beach21a",
+      "bundled": false
+    },
+    {
+      "path": "样稿/03-泳衣量腿/v2/assets/beach21a-source-mask.png",
+      "sha256": "0b0aa8ba5cb59805a29c8cf512f960dcba7f239cdb405e77444e969dac37b6a2",
+      "kind": "mask",
+      "source_id": "beach21a",
+      "bundled": false
+    },
+    {
+      "path": "样稿/03-泳衣量腿/assets/hals-four-inch.png",
+      "sha256": "8eb7430a63cd4271f4e26b578a8cba90570204249141c9a28530426d29a94f58",
+      "kind": "image",
+      "source_id": "hals-rules",
+      "bundled": false
+    },
+    {
+      "path": "样稿/03-泳衣量腿/assets/sherrill-hi.jpg",
+      "sha256": "500af44b725fcdcd48711adfebb95981cc91f883def16080c09a892d82dd6155",
+      "kind": "image",
+      "source_id": "sherrill",
+      "bundled": false
+    },
+    {
+      "path": "样稿/03-泳衣量腿/v2/assets/sherrill-source-mask.png",
+      "sha256": "5414c1a03d7ca3dd35a217a4c17e445e2bdff6eba7b5ae51b709eeccf14d4472",
+      "kind": "mask",
+      "source_id": "sherrill",
+      "bundled": false
+    },
+    {
+      "path": "样稿/03-泳衣量腿/assets/contest-hi.jpg",
+      "sha256": "5e5da26972ba73e9b4275f64174ebd44ab8fc19fc1330faa2cfeae034989e078",
+      "kind": "image",
+      "source_id": "contest",
+      "bundled": false
+    },
+    {
+      "path": "样稿/03-泳衣量腿/v2/assets/contest-source-mask.png",
+      "sha256": "52911fa2b4e5adf6440bdbabb92bd988c907ae874f9bc081dd6dd727f0958965",
+      "kind": "mask",
+      "source_id": "contest",
+      "bundled": false
+    },
+    {
+      "path": "样稿/03-泳衣量腿/assets/monument-hi.jpg",
+      "sha256": "95224c26bd73395052cbaacbd38b0c38201f87b9d3eb57fcf9d101b0389e94c6",
+      "kind": "image",
+      "source_id": "monument",
+      "bundled": false
+    },
+    {
+      "path": "样稿/03-泳衣量腿/assets/monument-subject-mask.png",
+      "sha256": "62850308a5c89f41eed52c80c1444944e808cf259152b0dfbfd54cb0a49110c2",
+      "kind": "mask",
+      "source_id": "monument",
+      "bundled": false
+    },
+    {
+      "path": "样稿/03-泳衣量腿/assets/world-clip.png",
+      "sha256": "029f5436158576511605ed553713472cf14ad13a724a0efd4598e2841f6320d7",
+      "kind": "image",
+      "source_id": "world-news",
+      "bundled": false
+    },
+    {
+      "path": "样稿/03-泳衣量腿/assets/kellerman-hi.jpg",
+      "sha256": "765d782a463a506685ec5fde93cfb08f66d9a1e8009edc46ea3889db1365f91e",
+      "kind": "image",
+      "source_id": "kellerman",
+      "bundled": false
+    },
+    {
+      "path": "样稿/03-泳衣量腿/v2/assets/kellerman-source-mask.png",
+      "sha256": "7e8aba06e8ca4bc1b2a337741d69c6c85c2ff5fe09d0691fef40671d6d57003a",
+      "kind": "mask",
+      "source_id": "kellerman",
+      "bundled": false
+    },
+    {
+      "path": "样稿/03-泳衣量腿/assets/parade-hi.jpg",
+      "sha256": "d0f501d513f199ab4be975eaba213ec6fe783fc510114a8e920a23770bfceeb5",
+      "kind": "image",
+      "source_id": "parade",
+      "bundled": false
+    },
+    {
+      "path": "样稿/03-泳衣量腿/v2/assets/parade-source-mask.png",
+      "sha256": "4f0e00e8379b8306b6d9d9559f969d5885714db83467b5b30ba38f89f3cc7186",
+      "kind": "mask",
+      "source_id": "parade",
+      "bundled": false
+    },
+    {
+      "path": "样稿/03-泳衣量腿/assets/kellerman-bust.png",
+      "sha256": "de01cf0b42c53891077d33e699d75d43bcddb663b4515b94efc2df27c998d5ba",
+      "kind": "image",
+      "source_id": "kellerman",
+      "bundled": false
+    },
+    {
+      "path": "样稿/03-泳衣量腿/assets/beach20-hi.jpg",
+      "sha256": "280f288619be2fa31df50707b9f4af5ca9d737730eb4e1b0c4d17fab0624fc98",
+      "kind": "image",
+      "source_id": "beach20",
+      "bundled": false
+    },
+    {
+      "path": "样稿/03-泳衣量腿/assets/contest-pair.jpg",
+      "sha256": "44dc79dfeb4896f438382975cf2bbceeaddf7bc1859087a8e7d816b8f86a1e0c",
+      "kind": "image",
+      "source_id": "contest-pair",
+      "bundled": false
+    },
+    {
+      "path": "样稿/03-泳衣量腿/v2/assets/contest-pair-source-mask.png",
+      "sha256": "b327cfba3ec14631e779da49a9094f52a1ad23624ae8e8581dbe706e718afc4a",
+      "kind": "mask",
+      "source_id": "contest-pair",
+      "bundled": false
+    },
+    {
+      "path": "样稿/03-泳衣量腿/assets/beach22-hi.jpg",
+      "sha256": "b381ea42c9ba5f07c80427898c5d1d81e1c559ec11520bbeed94ee0eb2689b83",
+      "kind": "image",
+      "source_id": "beach22",
+      "bundled": false
+    },
+    {
+      "path": "样稿/03-泳衣量腿/assets/winner.jpg",
+      "sha256": "a8a395a78d9e1b3b2f2515a7c2b9c0851ecd4f5c819e83c797bdbcb18c2f5552",
+      "kind": "image",
+      "source_id": "winner",
+      "bundled": false
+    },
+    {
+      "path": "样稿/03-泳衣量腿/v2/assets/winner-source-mask.png",
+      "sha256": "ccf09b8711e098f18bafb1b6dec6f9c8cd46e3b2c21212fb99e9d99aa471c0d5",
+      "kind": "mask",
+      "source_id": "winner",
+      "bundled": false
+    },
+    {
+      "path": "样稿/03-泳衣量腿/assets/arlington-hi.jpg",
+      "sha256": "330862db258c0066b62db31f340e090bd2d219838c59c9c8bd3cabaad8450f68",
+      "kind": "image",
+      "source_id": "arlington",
+      "bundled": false
+    },
+    {
+      "path": "样稿/03-泳衣量腿/assets/arlington-subject-mask.png",
+      "sha256": "d3fd7f8f471633b06ac5333bd3b1a4152c20a73d1db5b821bce84805ca322e33",
+      "kind": "mask",
+      "source_id": "arlington",
+      "bundled": false
+    },
+    {
+      "path": "样稿/03-泳衣量腿/assets/beach21b.jpg",
+      "sha256": "0b07c540d4bd153d1ce11fa5cc9d0469fae93509fc79fa5d76e4a62bccf37c31",
+      "kind": "image",
+      "source_id": "beach21b",
+      "bundled": false
+    }
+  ]
+}

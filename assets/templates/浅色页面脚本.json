@@ -1,0 +1,293 @@
+{
+  "schema_version": 1,
+  "tone": "浅",
+  "mode": "production",
+  "config": {
+    "tone": "浅",
+    "accent": "#9E2632",
+    "secondary_accent": "#B92D2C",
+    "background": "#F3EDE2",
+    "account_name": "{账号名}",
+    "bookmark": false,
+    "watermark_style": "neutral",
+    "watermark_text": "账号名",
+    "cover_only": true,
+    "background_profile": "mixed-v2",
+    "visual_profile": "v7-richness",
+    "text_color_profile": "light-editorial-v2",
+    "visual_revision_profile": "light-editorial-v2",
+    "require_face_every_page": true,
+    "avoid_watermark_overlap": true
+  },
+  "delivery": {
+    "main_cover": "D",
+    "cover_c": "optional",
+    "size": [
+      1440,
+      1920
+    ]
+  },
+  "pages": [
+    {
+      "layout": "cover",
+      "background": "#F3EDE2",
+      "bookmark": false,
+      "border": false,
+      "watermark": false,
+      "elements": [
+        {
+          "kind": "image",
+          "path": "assets/封面.jpg",
+          "source_id": "cover-source",
+          "box": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "fit": "cover",
+          "role": "background",
+          "focus": [
+            0.5,
+            0.35
+          ],
+          "darken": 0.15,
+          "face_boxes": [],
+          "face_detection_method": "待补Vision或人工确认"
+        },
+        {
+          "kind": "text",
+          "text": "人物与时代：",
+          "box": [
+            0.05,
+            0.72,
+            0.9,
+            0.1
+          ],
+          "size": 140,
+          "font": "serif-black",
+          "fill": "#171717",
+          "effect": "3d",
+          "depth": 1,
+          "bold": 1,
+          "shadow_color": "#D4CDBF",
+          "soft_shadow": {
+            "color": "#A39B8D",
+            "offset": [
+              2,
+              3
+            ],
+            "blur": 2,
+            "opacity": 0.12
+          }
+        },
+        {
+          "kind": "text",
+          "text": "经证实的冲突句",
+          "box": [
+            0.05,
+            0.83,
+            0.9,
+            0.11
+          ],
+          "size": 128,
+          "font": "cover-title",
+          "fill": "#9E2632",
+          "effect": "3d",
+          "depth": 1,
+          "bold": 1,
+          "shadow_color": "#D4CDBF",
+          "soft_shadow": {
+            "color": "#A39B8D",
+            "offset": [
+              2,
+              3
+            ],
+            "blur": 2,
+            "opacity": 0.12
+          }
+        }
+      ]
+    },
+    {
+      "layout": "split",
+      "background": "#F3EDE2",
+      "paper_texture": true,
+      "skeleton": "左右照片",
+      "text_position": "left",
+      "visual_focus": "经目检的单一主角",
+      "elements": [
+        {
+          "kind": "image",
+          "path": "assets/图源.jpg",
+          "source_id": "待补原图ID",
+          "box": [
+            0.53,
+            0.25,
+            0.47,
+            0.6
+          ],
+          "fit": "cover",
+          "hero": true,
+          "hero_form": "photo",
+          "face_verified": false,
+          "face_boxes": [],
+          "face_detection_method": "待补Vision或人工确认",
+          "subject_mask": "assets/人物测量mask.png",
+          "color_source": true,
+          "photo_role": "main",
+          "soft_shadow": {
+            "color": "#000000",
+            "offset": [
+              6,
+              8
+            ],
+            "blur": 10,
+            "opacity": 0.35
+          }
+        },
+        {
+          "kind": "text",
+          "text": "经查证的场景",
+          "box": [
+            0.07,
+            0.055,
+            0.86,
+            0.1
+          ],
+          "size": 110,
+          "font": "serif-black",
+          "fill": "#171717",
+          "callout": true,
+          "heading_level": "primary",
+          "text_role": "heading"
+        },
+        {
+          "kind": "text",
+          "text": "把具体人物、动作和时间写在这里。\n只写原始资料能支持的细节。",
+          "box": [
+            0.07,
+            0.2,
+            0.48,
+            0.32
+          ],
+          "size": 60,
+          "font": "body",
+          "fill": "#171717",
+          "lineheight": 90
+        },
+        {
+          "kind": "text",
+          "text": "留下一个下一页的问题",
+          "box": [
+            0.07,
+            0.75,
+            0.86,
+            0.11
+          ],
+          "size": 100,
+          "font": "serif-bold",
+          "fill": "#171717",
+          "callout": true
+        },
+        {
+          "kind": "hand_circle",
+          "target_text": "具体人物",
+          "fill": "#C92928",
+          "width": 4,
+          "padding": 10
+        }
+      ]
+    },
+    {
+      "layout": "collage",
+      "background": "#F3EDE2",
+      "paper_texture": true,
+      "skeleton": "上下叠图",
+      "text_position": "upper-lower",
+      "visual_focus": "经目检的单一主角",
+      "elements": [
+        {
+          "kind": "image",
+          "path": "assets/图源.jpg",
+          "source_id": "待补原图ID",
+          "box": [
+            0.53,
+            0.25,
+            0.47,
+            0.6
+          ],
+          "fit": "cover",
+          "hero": true,
+          "hero_form": "photo",
+          "face_verified": false,
+          "face_boxes": [],
+          "face_detection_method": "待补Vision或人工确认",
+          "subject_mask": "assets/人物测量mask.png",
+          "color_source": true,
+          "photo_role": "main",
+          "soft_shadow": {
+            "color": "#000000",
+            "offset": [
+              6,
+              8
+            ],
+            "blur": 10,
+            "opacity": 0.35
+          }
+        },
+        {
+          "kind": "text",
+          "text": "经查证的场景",
+          "box": [
+            0.07,
+            0.055,
+            0.86,
+            0.1
+          ],
+          "size": 110,
+          "font": "serif-black",
+          "fill": "#171717",
+          "callout": true,
+          "heading_level": "primary",
+          "text_role": "heading"
+        },
+        {
+          "kind": "text",
+          "text": "把具体人物、动作和时间写在这里。\n只写原始资料能支持的细节。",
+          "box": [
+            0.07,
+            0.2,
+            0.48,
+            0.32
+          ],
+          "size": 60,
+          "font": "body",
+          "fill": "#171717",
+          "lineheight": 90
+        },
+        {
+          "kind": "text",
+          "text": "留下一个下一页的问题",
+          "box": [
+            0.07,
+            0.75,
+            0.86,
+            0.11
+          ],
+          "size": 100,
+          "font": "serif-bold",
+          "fill": "#171717",
+          "callout": true
+        },
+        {
+          "kind": "hand_circle",
+          "target_text": "具体人物",
+          "fill": "#C92928",
+          "width": 4,
+          "padding": 10
+        }
+      ]
+    }
+  ]
+}

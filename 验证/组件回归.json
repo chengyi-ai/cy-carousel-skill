@@ -1,0 +1,50 @@
+[
+  {
+    "script": "验证排版.py",
+    "exit": 0,
+    "output": "PASS: >3%抠图碰撞被拒绝\nPASS: 文字在图片上层；图片重叠按像素并集计面积\nPASS: 同图不同裁切计入复用次数\nPASS: 标点共同基线，未上浮\n",
+    "error": "隔离测试/lishi-tuwen/scripts/验证排版.py:279: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.\n  assert sum(min(px)>230 for px in out.crop((72,96,500,230)).getdata())>100\n"
+  },
+  {
+    "script": "验证标题效果.py",
+    "exit": 0,
+    "output": "PASS：清晰B字库/1px/7层/柔影；旧0.35em及colon兼容；新标点按实际墨迹0.1em；旧版大空隙负例被发现；缺字补字可核。\n",
+    "error": ""
+  },
+  {
+    "script": "验证圆盘肖像.py",
+    "exit": 0,
+    "output": "PASS: 四向出圆、露盘≥40%、不透明图及过量遮挡拒绝\n",
+    "error": ""
+  },
+  {
+    "script": "验证整篇色调.py",
+    "exit": 0,
+    "output": "PASS：暗篇拒绝纸张/浅色平涂；浅篇拒绝黑/暗图；整版亮照片允许；整篇全黑与档案无需纸张；真实可见平涂/页面tone覆盖拒绝。\n",
+    "error": ""
+  },
+  {
+    "script": "验证混合背景.py",
+    "exit": 0,
+    "output": "PASS: 拒绝>1%拉伸；3:5/9:16/3:4格子cover等比无黑边\nPASS: Vision框驱动focus；显式crop截断人脸拒绝\nPASS: full-bleed渐变实像素；拒绝灰卡片/硬边/照片留边；亮图黑贴条许可；数量仅建议、假标签无效；成图变换与尺寸检查；灰色水印\n",
+    "error": ""
+  },
+  {
+    "script": "验证交替节奏.py",
+    "exit": 0,
+    "output": "PASS: color/white alternation, real glyph upper/lower zones, single keyword and adjacent color block rejection\n",
+    "error": ""
+  },
+  {
+    "script": "验证浅色调.py",
+    "exit": 0,
+    "output": "PASS：light/dark别名，浅色白/黄/青黑字贴条，灰卡/白正文/暗图负例，浅灰轻影默认，源图与人物mask同步裁切。\n",
+    "error": ""
+  },
+  {
+    "script": "验证授权标题接入.py",
+    "exit": 0,
+    "output": "PASS: 三标题key/正文不变/缺文件与index或weight错误明确回退；无商业字库\n",
+    "error": ""
+  }
+]

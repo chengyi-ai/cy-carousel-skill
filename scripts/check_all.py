@@ -1,0 +1,111 @@
+#!/usr/bin/env python3
+"""统一历史图文检查：不修改输入；技术验收与人工事实/视觉验收分开。"""
+import argparse,json,hashlib,re
+from pathlib import Path
+from PIL import Image,ImageColor
+from io_paths import set_assets_root,asset_path,check_relative_spec
+from render import page_config,normalize_tone,default_elements
+from 验证背景 import background_rules,backdrop_rules,geometry_rules,tone_rules,variation_rules
+from 验证排版 import richness_rules,alternation_rules,color_hierarchy_rules,watermark_rules
+from 浅色排版 import light_editorial_rules,face_text_rules
+from 验证留白 import check as whitespace_check
+
+
+def check_note(script,pages,report=None,assets_root=None,products=False):
+ script=Path(script).resolve();pages=Path(pages).resolve();report=Path(report or pages/'render-report.json')
+ set_assets_root(assets_root);data=json.loads(script.read_text());reports=json.loads(report.read_text())
+ if products:
+  for n,r in enumerate(reports,1):r['output_file']=str(pages/('01-封面.png' if n==1 else f'{n:02}.png'))
+ errors=check_relative_spec(data);checks={};sample=data.get('mode')=='sample'
+ if len(data['pages'])!=len(reports):errors.append('脚本与渲染报告页数不一致')
+ if not sample and not 9<=len(data['pages'])<=13:errors.append('正式稿必须为D封面＋8–12张内页')
+ if not data['pages'] or data['pages'][0]['layout']!='cover':errors.append('第一页必须为D主封面')
+ else:
+  cover=data['pages'][0];titles=[e for e in cover.get('elements',[]) if e['kind']=='text' and e.get('size',0)>=90]
+  if len(titles)!=2:errors.append('D主封面必须有两行独立大标题')
+  if cover.get('bookmark',data.get('config',{}).get('bookmark',False)):errors.append('系列书签默认关闭；定制例外需单独人工批准')
+  if cover.get('border') and titles:
+   t=next((v for v in reports[0].get('text',[]) if v['text']==titles[-1]['text'] and v['box']==titles[-1]['box']),{})
+   b=t.get('effect_bounds') or t.get('ink_bounds')
+   if not b or min(b[0],b[1],1440-b[2],1920-b[3])<60:errors.append('D第二行实际字形/阴影与边框须≥60px')
+ for n,p in enumerate(data['pages'],1):
+  r=next((v for v in reports if v['page']==n),{})
+  cfg=page_config(data.get('config',{}),p);cfg['tone']=normalize_tone(data.get('tone',cfg.get('tone','暗')))
+  target=Path(r.get('output_file',pages/f'p{n:02}.png'))
+  if not target.is_file():errors.append(f'P{n:02}缺成图');continue
+  with Image.open(target) as im:
+   if im.size!=(1440,1920):errors.append(f'P{n:02}成品必须1440×1920')
+  expected=hashlib.sha256(json.dumps(data.get('config',{}),ensure_ascii=False,sort_keys=True).encode()).hexdigest()
+  if r.get('config_script_sha256')!=expected:errors.append(f'P{n:02}配置与渲染报告不一致')
+  if any(v['opaque_overlap']>.03 for v in r.get('collisions',[])):errors.append(f'P{n:02}文字与抠图碰撞>3%')
+  for e in p.get('elements',default_elements(p)):
+   for key in ('path','mask','subject_mask','cutout_path'):
+    if e.get(key) and not asset_path(script.parent,e[key]).is_file():errors.append(f'P{n:02}缺素材 {e[key]}')
+   if 'face_boxes' in e and (not e.get('face_detection_method') or '待补' in e.get('face_detection_method','')):errors.append(f'P{n:02}脸框方法未经确认：{e.get("source_id")}')
+  for t in r.get('text',[]):
+   if t.get('font_file',{}).get('fallback'):errors.append(f'P{n:02}授权字库回退，不能视为正式接入成功')
+   bounds=t.get('effect_bounds') or t.get('ink_bounds')
+   if bounds and (bounds[0]<0 or bounds[1]<0 or bounds[2]>1440 or bounds[3]>1920):errors.append(f'P{n:02}文字墨迹越界：{t["text"][:16]}')
+   if t.get('used_height',0)>t.get('capacity_height',0)+1:errors.append(f'P{n:02}正文盒溢出')
+   brush='MaShanZheng' in t.get('font_file',{}).get('path','')
+   if brush:
+    if re.search(r'[0-9]',t['text']):errors.append(f'P{n:02}毛笔标题含数字')
+    if any(v['adjacent_han'] and (v['gap_em']>.2 or v['gap_em']<-.001) for v in t.get('punctuation_gaps',[])):errors.append(f'P{n:02}毛笔标点间距不合格')
+    if cfg['tone']=='暗' and t.get('effect')=='3d' and (t.get('depth')!=7 or t.get('bold')!=1 or t.get('external_outline')):errors.append(f'P{n:02}毛笔立体效果不符合清晰版B')
+  for c in r.get('components',[]):
+   if c['kind']=='disc_portrait' and (c['disc_visible_ratio']<.4 or not c['actual_outside_pixels'] or c.get('outline')):errors.append(f'P{n:02}圆盘露出/越边/无细圈不合格')
+  ft=face_text_rules(p,r)
+  if not ft['passed']:errors.append(f'P{n:02}字形/贴条挡脸：{ft["collisions"]}')
+ def run(name,fn):
+  try:
+   result=fn();checks[name]=result;errors.extend(result.get('errors',[]))
+  except (OSError,ValueError,KeyError,StopIteration,TypeError) as exc:
+   checks[name]={'passed':False,'errors':[str(exc)]};errors.append(f'{name}: {exc}')
+ run('geometry',lambda:geometry_rules(data,reports,script,pages))
+ run('background',lambda:background_rules(data,reports,script,pages))
+ run('tone',lambda:tone_rules(data,reports,script,pages,checks.get('background')))
+ run('backdrop',lambda:backdrop_rules(data,reports,script,pages))
+ run('watermark',lambda:watermark_rules(data))
+ if sample:
+  run('color_area',lambda:color_hierarchy_rules(data,reports,script,pages))
+  checks['production_quotas']={'applicable':False,'reason':'三页小样只验流程；正式稿8–12内页/15图源/全篇丰富度配额未验收'}
+ else:
+  run('richness',lambda:richness_rules(data,reports,script,pages))
+  if normalize_tone(data.get('tone',data.get('config',{}).get('tone','暗')))=='浅':
+   run('light_editorial',lambda:light_editorial_rules(data,reports,script,pages))
+   run('color_area',lambda:color_hierarchy_rules(data,reports,script,pages))
+  else:
+   run('alternation',lambda:alternation_rules(data,reports,script,pages))
+   run('whitespace',lambda:whitespace_check([Path(r.get('output_file',pages/f'p{n:02}.png')) for n,(p,r) in enumerate(zip(data['pages'],reports),1) if p['layout']!='cover']))
+   if data.get('config',{}).get('visual_revision_profile') in ('eye-v2','general'):run('variation',lambda:variation_rules(data,reports,script,pages))
+ # Precisely scoped user-approved exceptions, never a blanket waiver.
+ exceptions=data.get('source_reuse_exceptions',[])
+ if exceptions:
+  for ex in exceptions:
+   sid=ex.get('source_id');count=sum(e.get('source_id')==sid for p in data['pages'] for e in p.get('elements',[]) if e['kind'] in ('image','dark_backdrop','disc_portrait'))
+   involved=sum(any(e.get('source_id')==sid for e in p.get('elements',[])) for p in data['pages'])
+   if ex.get('user_instruction') and count==ex.get('placements') and involved==ex.get('pages'):
+    msg=f'原图{sid}复用{count}>2';errors=[v for v in errors if v!=msg]
+    if 'richness' in checks:
+     checks['richness']['errors']=[v for v in checks['richness']['errors'] if v!=msg];checks['richness']['passed']=not checks['richness']['errors']
+   else:errors.append(f'复用例外与实际摆放不一致：{sid}')
+ manifest=script.parent/'素材清单.json'
+ if manifest.exists():
+  checked=[]
+  for asset in json.loads(manifest.read_text())['assets']:
+   source=asset_path(script.parent,asset['path'])
+   if not source.is_file():errors.append('清单缺素材：'+asset['path']);continue
+   sha=hashlib.sha256(source.read_bytes()).hexdigest();ok=sha==asset['sha256'];checked.append({'path':asset['path'],'sha256_matches':ok})
+   if not ok:errors.append('清单素材SHA不一致：'+asset['path'])
+  checks['asset_manifest']={'passed':all(v['sha256_matches'] for v in checked),'files':checked}
+ errors=list(dict.fromkeys(errors))
+ return {'passed':not errors,'scope':'sample-technical' if sample else 'production-technical','production_ready':False if sample else not errors,'manual_review_required':['历史事实与来源原文','图片使用许可','原尺寸目检','人工盲测'],'pages':len(data['pages']),'exceptions':exceptions,'checks':checks,'errors':errors}
+
+
+def main():
+ ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('script',type=Path);g=ap.add_mutually_exclusive_group(required=True);g.add_argument('--pages',type=Path);g.add_argument('--products',type=Path);ap.add_argument('--report',type=Path);ap.add_argument('--assets-root',type=Path);ap.add_argument('--out',type=Path);a=ap.parse_args()
+ try:r=check_note(a.script,a.pages or a.products,a.report or (a.script.parent/'渲染基准.json' if a.products else None),a.assets_root,bool(a.products))
+ except (OSError,ValueError,KeyError) as exc:r={'passed':False,'errors':[str(exc)]}
+ if a.out:a.out.parent.mkdir(parents=True,exist_ok=True);a.out.write_text(json.dumps(r,ensure_ascii=False,indent=2))
+ print(json.dumps({'passed':r['passed'],'scope':r.get('scope'),'errors':r['errors']},ensure_ascii=False,indent=2));return 0 if r['passed'] else 1
+if __name__=='__main__':raise SystemExit(main())
