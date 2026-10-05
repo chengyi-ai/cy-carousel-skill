@@ -338,7 +338,7 @@ class Block:
         e = make(size)
         if '\n' in self.text:       # 作者手动断的行：放不下就缩字号，不在行内再折
             lo = LIMIT[self.role][0]
-            while size > lo and not all(fits({**e, 'box': [x, 0, w * 0.97, 1]}, ln) for ln in self.text.split('\n')):
+            while size > lo and not all(fits({**e, 'box': [x, 0, w * 0.93, 1]}, ln) for ln in self.text.split('\n')):
                 size -= STEP[self.role]; e = make(size)
         e['box'][2] = w * 0.97        # 断行时留3%余量，句末标点不出界
         e['text'] = wrap(e, self.text, self.protect)
@@ -585,6 +585,51 @@ def orphans(report):
     return bad
 
 
+BANNED = ['众所周知', '不难发现', '由此可见', '值得一提的是', '一时间', '轰动一时', '让人不禁', '说白了', '综上所述']
+STOP = set('的了是在和与也都就还又这那一个我们你他她它们之其而及或被把将对从到为以于上下中里外后前时'.split()) | {'一个', '这个', '那个', '没有', '自己', '他们', '她们', '我们', '什么', '因为', '所以', '可是', '但是', '后来', '这样', '一条', '一位'}
+
+
+def keywords(text):
+    t = re.sub(r'\[\[|\]\]|\n', '', text)
+    ws = jieba.lcut(t) if jieba else re.findall(r'[\u4e00-\u9fff]{2}', t)
+    return {w for w in ws if len(w) >= 2 and w not in STOP and not re.fullmatch(r'[\d\W]+', w)}
+
+
+def copy_checks(content):
+    """文案检查：只提醒，不拦截。规则见 references/文案公式.md。"""
+    out, pages = [], content['pages']
+    if not content.get('thesis'):
+        out.append('文案：内容.json 没有写 thesis（全篇论点）。先写一句「人们以为A，其实B」，每页都为它服务')
+    alltext = ''
+    for i, p in enumerate(pages, 1):
+        texts = [p.get(k, '') for k in ('title', 'body', 'emphasis', 'foot', 'line1', 'line2')]
+        alltext += ''.join(texts)
+        for w in BANNED:
+            if any(w in t for t in texts):
+                out.append(f'文案 {i:02d}：「{w}」是解说腔，换成具体的说法')
+        if i == 1:
+            continue
+        if p.get('body') and not re.search(r'\d|「|《', p.get('body', '') + p.get('foot', '')):
+            out.append(f'文案 {i:02d}：正文没有看得见的锚点（数字、日期、「原话」或《书名》），容易变成空泛的解说')
+        emp = p.get('emphasis', '')
+        if emp:
+            n = visible_len(emp)
+            if n > 16:
+                out.append(f'文案 {i:02d}：强调句{n}字，太长；强调句写一个判断，4–14字')
+            tk, ek = keywords(p.get('title', '')), keywords(emp)
+            if ek and len(ek & tk) / len(ek) >= 0.6:
+                out.append(f'文案 {i:02d}：强调句在重复标题，换成转折或判断')
+    if alltext.count('我') - alltext.count('我们') > 2:
+        out.append('文案：全篇「我」超过2次。历史图文里「我」只用在一两处判断上')
+    if len(pages) > 2:
+        head = keywords(pages[0].get('line1', '') + pages[0].get('line2', '') + content.get('thesis', ''))
+        last = pages[-1]
+        tail = keywords(''.join(last.get(k, '') for k in ('title', 'body', 'emphasis', 'foot')))
+        if head and not (head & tail):
+            out.append('文案：最后一页没有回扣封面或论点里的物件、词。结尾要把开头的东西拿回来，换个意思')
+    return out
+
+
 def preview(paths, out):
     tw, th, cols = 460, 613, 4
     rows = math.ceil(len(paths) / cols)
@@ -687,6 +732,7 @@ def main():
         if rp.exists():
             r = json.loads(rp.read_text())[0]; r['page'] = k; reports.append(r)
     (out / 'render-report.json').write_text(json.dumps(reports, ensure_ascii=False, indent=2))
+    warnings += copy_checks(content)
     (out / '排版报告.json').write_text(json.dumps({'pages': summary, 'warnings': warnings}, ensure_ascii=False, indent=2))
     inner = [r['blank_tiles'] for r in summary if r['page'] > 1]
     if inner:
@@ -694,6 +740,7 @@ def main():
     preview(sorted(out.glob('p[0-9][0-9].png')), out / '全套预览.jpg')
     for w_ in warnings:
         print('注意', w_)
+    print('文案自检：每页的强调句删掉后，信息会不会变少？不会，就说明它只是小结，需要改。')
     print('完成：', out)
 
 

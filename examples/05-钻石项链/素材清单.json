@@ -1,0 +1,70 @@
+{
+  "note": "原图未随包提供；均为公有领域或 CC0，出处见 README。",
+  "assets": [
+    {
+      "path": "assets/queen-family.png",
+      "id": "queen-family",
+      "sha256": "dced5758ff8fc5e57eec3c3e9e72f32650360f1622fb967dd400fa0ce7dedc2b"
+    },
+    {
+      "path": "assets/queen-1775.jpg",
+      "id": "queen-1775",
+      "sha256": "e72b7772dd106058275fab97d75c4260f03b1d360f5f30481f9c6018497871b3"
+    },
+    {
+      "path": "assets/queen-book-tight.png",
+      "id": "campan-book",
+      "sha256": "da7e5017b11fa0df028cee682f67d20ac6e7fa1685ec3ddccb91b61c5bd29ab5"
+    },
+    {
+      "path": "assets/portrait-group.jpg",
+      "id": "portrait-group",
+      "sha256": "3808d32d513aa693eacc8969e22c0ee9a434b811a5b083216053aaa6932f5e4d"
+    },
+    {
+      "path": "assets/jeanne-1790-tight.png",
+      "id": "jeanne-1790",
+      "sha256": "c7023f977942c18c017d603820e25b1c2abe9d0a45a2c67bb0d1bb19383c28a7"
+    },
+    {
+      "path": "assets/oliva-tight.png",
+      "id": "portrait-group",
+      "sha256": "57b0863c766de52e3c244662e3c6b7aa9a77472d3eca5424d78dc5f9c487ada7"
+    },
+    {
+      "path": "assets/garden.jpg",
+      "id": "garden",
+      "sha256": "c91895a044cc4539ec6bcf666e2cec31c43bcfcb15af7b78ac7537eef42d71c8"
+    },
+    {
+      "path": "assets/necklace.jpg",
+      "id": "necklace",
+      "sha256": "ecdb8130de6f1ac745bc97acae3095d0fb358309c64dce37fdf1cc8df5cc7569"
+    },
+    {
+      "path": "assets/queen-rose-tight.png",
+      "id": "queen-rose",
+      "sha256": "a11d840a88d163a251958fc5fb055d3a454100ae7e5e7e7ea80a1386cff17ef8"
+    },
+    {
+      "path": "assets/king-tight.png",
+      "id": "king",
+      "sha256": "a1f08018dda47a762f60384cb6e09160f30920e0b811c5184f6bc3836d6cba93"
+    },
+    {
+      "path": "assets/jeanne-1791-tight.png",
+      "id": "jeanne-1791",
+      "sha256": "5e1467c2e5adf5e2fbb178ae8bde58ded0fff29403b2e13b9d0a7b18364559d2"
+    },
+    {
+      "path": "assets/jeanne-1786-tight.png",
+      "id": "jeanne-1786",
+      "sha256": "56b531f1171cc7ec62fb3a0a3d40123ad45dc115727eca9ff8faeda0d043e8a0"
+    },
+    {
+      "path": "assets/event-b.jpg",
+      "id": "event-fan",
+      "sha256": "6c7511c727265d04bb77e98b35ba3750d98ec9bcbc39503c66ec39315e4719c5"
+    }
+  ]
+}
