@@ -116,7 +116,8 @@ def backdrop_rules(data,reports,script,pages_dir):
   cfg=page_config(data.get('config',{}),p);es=p.get('elements',default_elements(p));texts=[e for e in es if e['kind']=='text' and e.get('text')];records=[]
   fullbright=any(e['kind']=='image' and e.get('role')=='background' and e['box']==[0,0,1,1] and e.get('darken',0)<.3 for e in es)
   for e in texts:
-   if e.get('bg') and not fullbright and max(ImageColor.getrgb(e['bg']))>8:errors.append(f'P{n:02}非亮图文字平涂灰/彩底块：{e["text"][:15]}')
+   # 底色文字（text_role=note，强调色逐行底条＋黑字）是允许的写法；其余灰底、白底、彩底块仍不允许
+   if e.get('bg') and not fullbright and max(ImageColor.getrgb(e['bg']))>8 and not (e.get('text_role')=='note' and str(e['bg']).lower()==str(cfg.get('accent','')).lower()):errors.append(f'P{n:02}非亮图文字平涂灰/彩底块：{e["text"][:15]}')
   for e in es:
    if e['kind']=='rect' and e.get('fill') and max(ImageColor.getrgb(e['fill']))>8:
     x,y,w,h=e['box']

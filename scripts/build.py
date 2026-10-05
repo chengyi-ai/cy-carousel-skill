@@ -29,9 +29,9 @@ SHADOW = {'color': '#000000', 'offset': [8, 10], 'blur': 12, 'opacity': 0.5}
 TITLE_BOX = [L, 0.035, FULL, 0.17]
 BOTTOM = 0.955                      # 文字最低到这里，给右下角署名留位
 GAP_MIN, GAP_MAX = 54 / H, 150 / H  # 文字块之间的间距
-PREF = {'body': 56, 'emphasis': 96, 'foot': 52}
-STEP = {'body': 2, 'emphasis': 4, 'foot': 2}
-LIMIT = {'body': (52, 60), 'emphasis': (84, 108), 'foot': (48, 56)}
+PREF = {'body': 56, 'emphasis': 96, 'foot': 52, 'note': 48}
+STEP = {'body': 2, 'emphasis': 4, 'foot': 2, 'note': 0}
+LIMIT = {'body': (52, 60), 'emphasis': (84, 108), 'foot': (48, 56), 'note': (48, 48)}
 LAYOUT_NAMES = ['封面', '右抠图', '左大图', '横幅', '整版底', '双图', '物件', '收尾']
 
 # ---------------------------------------------------------------- 文字元素
@@ -46,6 +46,12 @@ def serif(text, box, size, fill=WHITE, role='heading'):
     return {'kind': 'text', 'text': text, 'box': box, 'size': size, 'font': 'serif-bold', 'fill': fill,
             'lineheight': round(size * 1.3), 'spacing': 0, 'tight_punctuation': 'all', 'text_role': role,
             'callout': True}
+
+
+def note(text, box, size, bg):
+    """底色文字：强调色逐行底条＋黑字，用来突出原话、关键数字或证据边界。"""
+    return {'kind': 'text', 'text': text, 'box': box, 'size': size, 'font': 'sans-bold', 'fill': '#111111',
+            'bg': bg, 'lineheight': round(size * 1.5), 'spacing': 0, 'tight_punctuation': 'all', 'text_role': 'note'}
 
 
 def body(text, box, size):
@@ -334,7 +340,8 @@ class Block:
             return None
         box = [x, y, w, 0.1]
         make = lambda sz: (brush(self.text, list(box), sz, self.accent, 'emphasis') if self.style == 'brush'
-                           else serif(self.text, list(box), sz, WHITE, 'emphasis')) if self.role == 'emphasis' else body(self.text, list(box), sz)
+                           else serif(self.text, list(box), sz, WHITE, 'emphasis')) if self.role == 'emphasis' else (
+                           note(self.text, list(box), sz, self.accent) if self.role == 'note' else body(self.text, list(box), sz))
         e = make(size)
         if '\n' in self.text:       # 作者手动断的行：放不下就缩字号，不在行内再折
             lo = LIMIT[self.role][0]
@@ -427,8 +434,8 @@ def build_page(i, page, ctx, width_factor=1.0):
     if re.search(r'\d', page.get('emphasis', '')):
         e_style = 'serif'
     mk = lambda role: Block(role, page[role], e_style if role == 'emphasis' else None, accent, protect) if page.get(role) else None
-    B = {r: mk(r) for r in ('body', 'emphasis', 'foot')}
-    order = [r for r in page.get('order', ['body', 'emphasis', 'foot']) if B.get(r)]
+    B = {r: mk(r) for r in ('body', 'note', 'emphasis', 'foot')}
+    order = [r for r in page.get('order', ['body', 'note', 'emphasis', 'foot']) if B.get(r)]
     els, info, cols = [], {'layout': lay}, []
     hero, second, bd = page.get('hero'), page.get('second'), page.get('backdrop')
 
@@ -442,8 +449,8 @@ def build_page(i, page, ctx, width_factor=1.0):
             els.append(disc_el(round(cx, 4), round(cy, 4), r, page.get('disc_color', muted(accent))))
         els.append(he)
         if wide:
-            cols.append(([B['body']] if B['body'] else [], L, 0.40, 0.235, 0.70))
-            cols.append(([B[r] for r in order if r != 'body'], L, FULL, 0.73, BOTTOM))
+            cols.append(([B[r] for r in order if r in ('body', 'note')], L, 0.40, 0.235, 0.70))
+            cols.append(([B[r] for r in order if r not in ('body', 'note')], L, FULL, 0.73, BOTTOM))
         else:
             cols.append(([B[r] for r in order], L, 0.40, 0.235, BOTTOM))
 
@@ -463,12 +470,14 @@ def build_page(i, page, ctx, width_factor=1.0):
                 b = B['emphasis']; e = b.element(L, 0.60, page.get('emphasis_size', 96))
                 e['box'][1] = round(0.41 - e['box'][3] / 2, 4); els.append(('text', e)); order = [r for r in order if r != 'emphasis']
         elif hero:
-            els.append(photo_el(hero, [L, 0.215, FULL, 0.40], hero=True))
+            band = page.get('band', 0.40)            # 文字多时自动压低横幅（见 build_page 外层重试）
+            els.append(photo_el(hero, [L, 0.215, FULL, band], hero=True))
+        top = 0.215 + (page.get('band', 0.40) if (hero and not bd) else 0.40) + 0.02
         if second:
-            els.append(image_el(second, root, [0.60, 0.60, 0.34, 0.36], [0.60, 0.60, 0.34, 0.36], hero=not bd and not hero))
-            cols.append(([B[r] for r in order], L, 0.52, 0.625, BOTTOM))
+            els.append(image_el(second, root, [0.60, top - 0.035, 0.34, 0.36], [0.60, top - 0.035, 0.34, 0.36], hero=not bd and not hero))
+            cols.append(([B[r] for r in order], L, 0.52, top - 0.01, BOTTOM))
         else:
-            cols.append(([B[r] for r in order], L, FULL, 0.635, BOTTOM))
+            cols.append(([B[r] for r in order], L, FULL, top, BOTTOM))
 
     elif lay == '整版底':
         els.append(backdrop_el(bd, [0, 0, 1, 1], 0.66, 0))
@@ -481,8 +490,8 @@ def build_page(i, page, ctx, width_factor=1.0):
         if second:
             els.append(image_el(second, root, [0.655, 0.215, 0.29, 0.22], [0.655, 0.215, 0.29, 0.22], hero=False, side='right'))
         els.append(image_el(hero, root, [0.0, 0.50, 0.46, 0.49], [L, 0.52, 0.40, 0.42]))
-        cols.append(([B['body']] if B['body'] else [], L, 0.58 if second else FULL, 0.225, 0.47))
-        cols.append(([B[r] for r in order if r != 'body'], 0.50, 0.444, 0.505, BOTTOM))
+        cols.append(([B[r] for r in order if r in ('body', 'note')], L, 0.58 if second else FULL, 0.225, 0.47))
+        cols.append(([B[r] for r in order if r not in ('body', 'note')], 0.50, 0.444, 0.505, BOTTOM))
 
     elif lay == '物件':
         els.append(image_el(second, root, [0.12, 0.345, 0.84, 0.30], [0.12, 0.345, 0.76, 0.29], hero=False, side='center'))
@@ -493,8 +502,8 @@ def build_page(i, page, ctx, width_factor=1.0):
     elif lay == '收尾':
         els.append(image_el(hero, root, [0.47, 0.18, 0.52, 0.68], [0.47, 0.20, 0.50, 0.64], side='right'))
         if second:
-            els.append(image_el(second, root, [L, 0.60, 0.30, 0.28], [L, 0.60, 0.30, 0.28], hero=False))
-        cols.append(([B[r] for r in order if r != 'foot'], L, 0.40, 0.225, 0.585))
+            els.append(image_el(second, root, [L, 0.655, 0.29, 0.25], [L, 0.655, 0.29, 0.25], hero=False))
+        cols.append(([B[r] for r in order if r != 'foot'], L, 0.40, 0.225, 0.64 if second else 0.83))
         if B['foot']:
             cols.append(([B['foot']], 0.38, 0.564, 0.85, BOTTOM))
 
@@ -602,14 +611,14 @@ def copy_checks(content):
         out.append('文案：内容.json 没有写 thesis（全篇论点）。先写一句「人们以为A，其实B」，每页都为它服务')
     alltext = ''
     for i, p in enumerate(pages, 1):
-        texts = [p.get(k, '') for k in ('title', 'body', 'emphasis', 'foot', 'line1', 'line2')]
+        texts = [p.get(k, '') for k in ('title', 'body', 'note', 'emphasis', 'foot', 'line1', 'line2')]
         alltext += ''.join(texts)
         for w in BANNED:
             if any(w in t for t in texts):
                 out.append(f'文案 {i:02d}：「{w}」是解说腔，换成具体的说法')
         if i == 1:
             continue
-        if p.get('body') and not re.search(r'\d|「|《', p.get('body', '') + p.get('foot', '')):
+        if p.get('body') and not re.search(r'\d|「|《', p.get('body', '') + p.get('foot', '') + p.get('note', '')):
             out.append(f'文案 {i:02d}：正文没有看得见的锚点（数字、日期、「原话」或《书名》），容易变成空泛的解说')
         emp = p.get('emphasis', '')
         if emp:
@@ -619,6 +628,8 @@ def copy_checks(content):
             tk, ek = keywords(p.get('title', '')), keywords(emp)
             if ek and len(ek & tk) / len(ek) >= 0.6:
                 out.append(f'文案 {i:02d}：强调句在重复标题，换成转折或判断')
+    if sum(1 for p in pages if p.get('note')) > 5:
+        out.append('文案：底色文字超过5处。它只用来突出原话、关键数字或证据边界，多了就不醒目')
     if alltext.count('我') - alltext.count('我们') > 2:
         out.append('文案：全篇「我」超过2次。历史图文里「我」只用在一两处判断上')
     if len(pages) > 2:
@@ -677,7 +688,16 @@ def main():
             try:
                 p, info = build_page(i, page, ctx, factor)
             except ValueError as err:
-                raise SystemExit(f'第{i}张排不下：{err}')
+                p = None
+                if page.get('layout') == '横幅' and page.get('hero') and not page.get('backdrop'):
+                    for band in (0.36, 0.32, 0.28):     # 横幅压低一点，把高度让给文字
+                        try:
+                            p, info = build_page(i, {**page, 'band': band}, ctx, factor)
+                            break
+                        except ValueError:
+                            continue
+                if p is None:
+                    raise SystemExit(f'第{i}张排不下：{err}')
             tmp = work / f'P{i:02d}'; tmp.mkdir(parents=True, exist_ok=True)
             s = tmp / '页面脚本.json'
             s.write_text(json.dumps({**script, 'pages': [p]}, ensure_ascii=False, indent=2))
