@@ -1,0 +1,39 @@
+{
+  "topic": "选题一句话（只给自己看）",
+  "account": "账号名",
+  "accent": "#5AA9E6",
+  "protect": ["人名", "地名", "专有名词"],
+  "pages": [
+    {"layout": "封面", "line1": "第一行（白色，≤11字）：", "line2": "第二行（强调色，≤8字）",
+     "hero": {"path": "assets/封面人物.jpg", "id": "图源ID", "crop": [0.2, 0.05, 0.75, 0.6]}},
+
+    {"layout": "右抠图", "title": "标题第一行，标题第二行",
+     "body": "正文60–110字。可以不手动换行，排版器按语意断行。",
+     "emphasis": "强调句，\n每行4–7字。",
+     "foot": "收尾一句，给下一页留钩子。",
+     "hero": {"path": "assets/人物-抠图.png", "id": "图源ID", "face": [[0.40, 0.20, 0.20, 0.15]]}},
+
+    {"layout": "横幅", "title": "……", "emphasis": "压在横幅上的大字", "body": "……", "foot": "……",
+     "backdrop": {"path": "assets/整幅画.jpg", "id": "图源ID"},
+     "second": {"path": "assets/小版画.jpg", "id": "图源ID", "crop": [0.1, 0.05, 0.9, 0.8], "face": [[0.4, 0.3, 0.2, 0.1]]}},
+
+    {"layout": "左大图", "title": "……", "body": "……", "emphasis": "……", "foot": "……",
+     "hero": {"path": "assets/竖幅画.jpg", "id": "图源ID", "crop": [0.05, 0.05, 0.95, 0.8], "focus": [0.5, 0.35], "face": [[0.4, 0.2, 0.1, 0.08]]}},
+
+    {"layout": "整版底", "title": "……", "body": "……", "emphasis": "……", "foot": "……",
+     "backdrop": {"path": "assets/油画局部.jpg", "id": "图源ID"},
+     "hero": {"path": "assets/人物-抠图.png", "id": "图源ID", "face": [[0.4, 0.3, 0.1, 0.06]]}},
+
+    {"layout": "双图", "title": "……", "body": "……", "emphasis": "……", "foot": "……",
+     "second": {"path": "assets/小物件-抠图.png", "id": "图源ID"},
+     "hero": {"path": "assets/半身像-抠图.png", "id": "图源ID", "face": [[0.45, 0.4, 0.22, 0.16]]}},
+
+    {"layout": "物件", "title": "……", "body": "……", "emphasis": "……", "foot": "……",
+     "second": {"path": "assets/横向物件-抠图.png", "id": "图源ID"},
+     "hero": {"path": "assets/半身像-抠图.png", "id": "图源ID", "face": [[0.45, 0.4, 0.22, 0.16]]}},
+
+    {"layout": "收尾", "title": "……", "body": "……", "emphasis": "……", "foot": "最后一句。",
+     "hero": {"path": "assets/竖幅画.jpg", "id": "图源ID", "face": [[0.3, 0.1, 0.3, 0.12]]},
+     "second": {"path": "assets/小画.jpg", "id": "图源ID"}}
+  ]
+}

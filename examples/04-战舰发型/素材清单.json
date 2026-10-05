@@ -1,0 +1,90 @@
+{
+  "note": "原图未随包提供；按置顶评论里的出处下载，抠图用 scripts/cutout.swift 生成。",
+  "assets": [
+    {
+      "path": "assets/ma-rose-1783.jpg",
+      "id": "vigee-ma-rose-1783",
+      "sha256": "d52ee3480080826800db4ce171cfc514ff9d2443a81b570e180074061f3855a7"
+    },
+    {
+      "path": "assets/work/bnf-btv1b53192365t-cut-clean.png",
+      "id": "bnf-btv1b53192365t",
+      "sha256": "47a490e9448feeb0a66fdec75f02bf6fc4073eff0a13fa193c32add5f8de1493"
+    },
+    {
+      "path": "assets/belle-poule-rijks.jpg",
+      "id": "rijks-RP-P-2009-2167",
+      "sha256": "e93c02d2d3b06059d627dd2bc12cdc5cc0f46ba129971ac7b55ffa390c9ba06d"
+    },
+    {
+      "path": "assets/battle-ozanne.jpg",
+      "id": "ozanne-belle-poule-1778",
+      "sha256": "3d5424c05957d3179fa4e30b4d2ea9649bcbadf4525343ce1a05a67d9b919970"
+    },
+    {
+      "path": "assets/work/met-galerie-rgb.jpg",
+      "id": "met-350230-galerie-des-modes",
+      "sha256": "01116ea35b93ca6de3be34d0dd12f2e89eda70310a3c2b7359bf1ee23701d185"
+    },
+    {
+      "path": "assets/work/bertin-met-cut-tight.png",
+      "id": "met-369411-bertin",
+      "sha256": "578d0bc4314db8bf335dba8544886d9b4ff3d9c6eefff3d129df8bb431340f08"
+    },
+    {
+      "path": "assets/work/met-ma-boizot-1775-cut-tight.png",
+      "id": "met-399655-boizot-1775",
+      "sha256": "4570f212d244fe3ffcffa9a7858eb15ebae54c4efa650b3009530a9947f28a19"
+    },
+    {
+      "path": "assets/work/thaler-coin-cut-tight.png",
+      "id": "met-237844-thaler",
+      "sha256": "3b2a0c232de5bffc1f1f5022f1d47343e117e5ece13522c75a354a9f41031c50"
+    },
+    {
+      "path": "assets/work/met-ma-park-cut-tight.png",
+      "id": "met-824771-ma-park",
+      "sha256": "a2798bfbc967b09fb957f3f1a3f2aae09f9bc08a76d3c0765a2bc0e2ba1663f5"
+    },
+    {
+      "path": "assets/bnf-btv1b84101510.jpg",
+      "id": "bnf-btv1b84101510",
+      "sha256": "4c0a995755f9a9c76dda3cc3103c8b5a4f630382e044f2d12c55fc224aaefdfe"
+    },
+    {
+      "path": "assets/work/cover-ma-1778-cut-tight.png",
+      "id": "khm-gg2772-vigee-1778",
+      "sha256": "bda1c652b88deb95a1f141ad82220ae789a51e591b2613b1060c7807c9da8581"
+    },
+    {
+      "path": "assets/work/ma-rose-dress.jpg",
+      "id": "vigee-ma-rose-1783",
+      "sha256": "52d74031f1ce44b0e4e24ebccec15e7b69af2997425f82bbece9f779317b59a5"
+    },
+    {
+      "path": "assets/visavis-tif.jpg",
+      "id": "loc-2006685275-visavis",
+      "sha256": "7fe3d0e050a4f51cf7b486501fb5c8863acec15b75bb29de88efd9252314d3ed"
+    },
+    {
+      "path": "assets/darly-preposterous.jpg",
+      "id": "ycba-B1977.14.10990-darly",
+      "sha256": "7d4a52934d0ce66b88d45fc5490904c4a505f9c49320f98692bd06a4ec427061"
+    },
+    {
+      "path": "assets/work/met-ring-5262-cut-tight.png",
+      "id": "met-5262-mourning-ring",
+      "sha256": "924aae3732e3684ead7b58843a94e319b5a2dfa31969df533ed50b2829099445"
+    },
+    {
+      "path": "assets/david-bnf.jpg",
+      "id": "bnf-btv1b84119831-david",
+      "sha256": "c03dfbb0d0ce8837973fcd8b161cb598acdb186a42961dbee0b6d912f3d87cbe"
+    },
+    {
+      "path": "assets/belle-poule-bnf.jpg",
+      "id": "bnf-btv1b8410152d",
+      "sha256": "1b6ae9d841e305bdcec76ec9638036c972ebe7c78a803efadd682fe8f265132b"
+    }
+  ]
+}

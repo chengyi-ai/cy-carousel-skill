@@ -11,6 +11,27 @@ from 浅色排版 import light_editorial_rules,face_text_rules
 from 验证留白 import check as whitespace_check
 
 
+PAGE_COUNTER=re.compile(r'^\s*\d{1,2}\s*/\s*\d{1,2}\s*$|第\s*\d+\s*页')
+
+def red_lines(n,p,r):
+ """本风格的硬红线：不要图注、页眉页脚、页码栏目名、过小的字和孤字行。"""
+ out=[]
+ for e in p.get('elements',[]):
+  if e.get('kind')=='caption':out.append(f'P{n:02}有图注：图上不写出处/说明，出处统一放置顶评论')
+  if e.get('kind')=='text':
+   if e.get('size',60)<48:out.append(f'P{n:02}文字小于48px（像图注/页眉）：{e["text"][:12]}')
+   if PAGE_COUNTER.search(e['text']):out.append(f'P{n:02}有页码/栏目编号：{e["text"][:12]}')
+ if p.get('layout')!='cover':
+  for t in r.get('text',[]):
+   b=t.get('ink_bounds')
+   if b and (b[1]<40 or b[3]>1895):out.append(f'P{n:02}文字贴着页面上下边（页眉/页脚）：{t["text"][:12]}')
+   rows={}
+   for g in t.get('glyphs') or []:rows.setdefault(g['line'],[]).append(g['char'])
+   if len(rows)>1 and any(len([c for c in v if c not in '，。、：；！？…」』》）,.!?:;']) <2 for v in rows.values()):
+    out.append(f'P{n:02}有孤字行：{t["text"][:12]}')
+ return out
+
+
 def check_note(script,pages,report=None,assets_root=None,products=False):
  script=Path(script).resolve();pages=Path(pages).resolve();report=Path(report or pages/'render-report.json')
  set_assets_root(assets_root);data=json.loads(script.read_text());reports=json.loads(report.read_text())
@@ -56,11 +77,16 @@ def check_note(script,pages,report=None,assets_root=None,products=False):
    if c['kind']=='disc_portrait' and (c['disc_visible_ratio']<.4 or not c['actual_outside_pixels'] or c.get('outline')):errors.append(f'P{n:02}圆盘露出/越边/无细圈不合格')
   ft=face_text_rules(p,r)
   if not ft['passed']:errors.append(f'P{n:02}字形/贴条挡脸：{ft["collisions"]}')
+  errors.extend(red_lines(n,p,r))
+ advisories=[]
+ # 风格指标（色彩丰富度、强调色占比、交替节奏、留白配额等）只作参考：为凑指标改版式，反而会把页面做坏。
+ ADVISORY={'richness','alternation','whitespace','variation','color_area'}
  def run(name,fn):
+  target=advisories if name in ADVISORY else errors
   try:
-   result=fn();checks[name]=result;errors.extend(result.get('errors',[]))
+   result=fn();checks[name]=result;target.extend(result.get('errors',[]))
   except (OSError,ValueError,KeyError,StopIteration,TypeError) as exc:
-   checks[name]={'passed':False,'errors':[str(exc)]};errors.append(f'{name}: {exc}')
+   checks[name]={'passed':False,'errors':[str(exc)]};target.append(f'{name}: {exc}')
  run('geometry',lambda:geometry_rules(data,reports,script,pages))
  run('background',lambda:background_rules(data,reports,script,pages))
  run('tone',lambda:tone_rules(data,reports,script,pages,checks.get('background')))
@@ -99,7 +125,7 @@ def check_note(script,pages,report=None,assets_root=None,products=False):
    if not ok:errors.append('清单素材SHA不一致：'+asset['path'])
   checks['asset_manifest']={'passed':all(v['sha256_matches'] for v in checked),'files':checked}
  errors=list(dict.fromkeys(errors))
- return {'passed':not errors,'scope':'sample-technical' if sample else 'production-technical','production_ready':False if sample else not errors,'manual_review_required':['历史事实与来源原文','图片使用许可','原尺寸目检','人工盲测'],'pages':len(data['pages']),'exceptions':exceptions,'checks':checks,'errors':errors}
+ return {'advisories':list(dict.fromkeys(advisories)),'passed':not errors,'scope':'sample-technical' if sample else 'production-technical','production_ready':False if sample else not errors,'manual_review_required':['历史事实与来源原文','图片使用许可','原尺寸目检','人工盲测'],'pages':len(data['pages']),'exceptions':exceptions,'checks':checks,'errors':errors}
 
 
 def main():
@@ -107,5 +133,5 @@ def main():
  try:r=check_note(a.script,a.pages or a.products,a.report or (a.script.parent/'渲染基准.json' if a.products else None),a.assets_root,bool(a.products))
  except (OSError,ValueError,KeyError) as exc:r={'passed':False,'errors':[str(exc)]}
  if a.out:a.out.parent.mkdir(parents=True,exist_ok=True);a.out.write_text(json.dumps(r,ensure_ascii=False,indent=2))
- print(json.dumps({'passed':r['passed'],'scope':r.get('scope'),'errors':r['errors']},ensure_ascii=False,indent=2));return 0 if r['passed'] else 1
+ print(json.dumps({'passed':r['passed'],'scope':r.get('scope'),'errors':r['errors'],'advisories':r.get('advisories',[])},ensure_ascii=False,indent=2));return 0 if r['passed'] else 1
 if __name__=='__main__':raise SystemExit(main())
