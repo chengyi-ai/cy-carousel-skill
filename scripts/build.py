@@ -50,7 +50,10 @@ def serif(text, box, size, fill=WHITE, role='heading'):
 
 def note(text, box, size, bg):
     """底色文字：强调色逐行底条＋黑字，用来突出原话、关键数字或证据边界。"""
-    return {'kind': 'text', 'text': text, 'box': box, 'size': size, 'font': 'sans-bold', 'fill': '#111111',
+    from PIL import ImageColor
+    r, g, b_ = ImageColor.getrgb(bg)[:3]
+    ink = '#111111' if (0.299 * r + 0.587 * g + 0.114 * b_) / 255 > 0.55 else '#FFFFFF'   # 底色深就用白字
+    return {'kind': 'text', 'text': text, 'box': box, 'size': size, 'font': 'sans-bold', 'fill': ink,
             'bg': bg, 'lineheight': round(size * 1.5), 'spacing': 0, 'tight_punctuation': 'all', 'text_role': 'note'}
 
 
@@ -630,7 +633,8 @@ def copy_checks(content):
                 out.append(f'文案 {i:02d}：强调句在重复标题，换成转折或判断')
     if sum(1 for p in pages if p.get('note')) > 5:
         out.append('文案：底色文字超过5处。它只用来突出原话、关键数字或证据边界，多了就不醒目')
-    if alltext.count('我') - alltext.count('我们') > 2:
+    narr = re.sub(r'「[^」]*」', '', alltext)          # 引号里是别人的原话，不算作者的「我」
+    if narr.count('我') - narr.count('我们') > 2:
         out.append('文案：全篇「我」超过2次。历史图文里「我」只用在一两处判断上')
     if len(pages) > 2:
         head = keywords(pages[0].get('line1', '') + pages[0].get('line2', '') + content.get('thesis', ''))
