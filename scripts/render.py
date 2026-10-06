@@ -30,7 +30,11 @@ FONTS={
  'display':(FONT_ROOT/'MaShanZheng-Regular.ttf',0,None),
  'brush':(FONT_ROOT/'MaShanZheng-Regular.ttf',0,None),
  'signature':(FONT_ROOT/'NotoSerifSC[wght].ttf',0,400),
- 'songti':(FONT_ROOT/'NotoSerifSC[wght].ttf',0,700)}
+ 'songti':(FONT_ROOT/'NotoSerifSC[wght].ttf',0,700),
+ # 标题展示字体：默认思源黑体 Heavy；内容.json 写 title_font 时换成那个字库（如阿里妈妈数黑体）
+ 'title-display':(FONT_ROOT/'NotoSansSC[wght].ttf',0,900),
+ # 封面两行：思源宋体 Black（最接近原版封面的宋黑融合字）
+ 'cover-display':(FONT_ROOT/'NotoSerifSC[wght].ttf',0,900)}
 LAYOUTS={'cover','story','split','collage','points','quote','full','ending'}
 from functools import lru_cache
 @lru_cache(maxsize=96)
@@ -529,6 +533,7 @@ def render(script,out,width=1440,assets_root=None):
    if e['kind'] not in ['text','caption']:continue
    x,y,w,h=e['box'];box=(round(x*W),round(y*H),round((x+w)*W),round((y+h)*H));area=(box[2]-box[0])*(box[3]-box[1])
    for path,mask in foreground:
+    if e.get('text_role')=='label':continue   # 人名标签本来就贴在图上
     overlap=mask.crop(box).histogram()[255]/max(1,area)
     collisions.append({'text':e['text'][:30],'image':path,'opaque_overlap':round(overlap,6)})
     if overlap>.03:raise ValueError(f"碰撞：文本框与抠图不透明区域重叠{overlap:.1%}>3%：{e['text'][:30]} / {path}")

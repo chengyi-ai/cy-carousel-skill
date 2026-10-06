@@ -1,7 +1,8 @@
 {
  "topic": "选题一句话（只给自己看）",
  "account": "账号名",
- "accent": "#5AA9E6",
+ "accent": "#FFD84D",
+ "style": "v2",
  "thesis": "全篇论点，一句话：人们以为A，其实是B（必填，见 references/文案公式.md）",
  "protect": [
   "人名",
@@ -26,13 +27,14 @@
    "role": "封面：第一行是熟悉的说法，第二行反转"
   },
   {
-   "layout": "右抠图",
-   "title": "标题第一行，标题第二行",
-   "body": "正文60–110字。可以不手动换行，排版器按语意断行。",
+   "layout": "立像",
+   "title": "短标题",
+   "body": "正文60–130字。可以不手动换行，排版器按语意断行，超过约60字自动分两段。把一个关键词写成[[这样]]。",
    "emphasis": "强调句，\n每行4–7字。",
-   "foot": "收尾一句，给下一页留钩子。",
+   "foot": "收尾一句（可选）。",
    "hero": {
-    "path": "assets/人物-抠图.png",
+    "path": "assets/半身像.jpg",
+    "cut": "assets/cut/半身像-cut.png",
     "id": "图源ID",
     "face": [
      [
@@ -43,148 +45,136 @@
      ]
     ]
    },
+   "cut_h": 0.72,
    "role": "P1 打破印象：人们以为……其实……"
   },
   {
-   "layout": "横幅",
-   "title": "……",
-   "emphasis": "压在横幅上的大字",
+   "layout": "渐隐",
+   "title": "短标题",
    "body": "……",
-   "foot": "……",
+   "emphasis": "……",
    "backdrop": {
     "path": "assets/整幅画.jpg",
-    "id": "图源ID"
-   },
-   "second": {
-    "path": "assets/小版画.jpg",
     "id": "图源ID",
-    "crop": [
-     0.1,
-     0.05,
-     0.9,
-     0.8
-    ],
     "face": [
      [
       0.4,
       0.3,
-      0.2,
-      0.1
+      0.05,
+      0.06
      ]
     ]
    },
+   "darken": 0.62,
    "role": "P2 参照物：读者熟悉的人、典故或现象，一句即可"
   },
   {
-   "layout": "左大图",
+   "layout": "图文叠",
    "title": "……",
-   "body": "……",
+   "body": "第一段……。第二段……。",
+   "note": "「原话」或关键数字（可选）",
    "emphasis": "……",
-   "foot": "……",
    "hero": {
-    "path": "assets/竖幅画.jpg",
+    "path": "assets/横幅场景画.jpg",
     "id": "图源ID",
-    "crop": [
-     0.05,
-     0.05,
-     0.95,
-     0.8
-    ],
     "focus": [
      0.5,
-     0.35
-    ],
+     0.4
+    ]
+   },
+   "second": {
+    "path": "assets/人物.jpg",
+    "cut": "assets/cut/人物-cut.png",
+    "id": "图源ID",
     "face": [
      [
       0.4,
       0.2,
-      0.1,
-      0.08
+      0.2,
+      0.15
      ]
     ]
    },
    "role": "P3–P6 场景和证据：一个看得见的动作或物件，加数字、日期或原话"
   },
   {
-   "layout": "整版底",
+   "layout": "错落",
    "title": "……",
    "body": "……",
    "emphasis": "……",
-   "foot": "……",
-   "backdrop": {
-    "path": "assets/油画局部.jpg",
-    "id": "图源ID"
-   },
-   "hero": {
-    "path": "assets/人物-抠图.png",
-    "id": "图源ID",
-    "face": [
-     [
-      0.4,
-      0.3,
-      0.1,
-      0.06
-     ]
-    ]
-   },
-   "role": "P7–P8 解释机制：为什么会这样，谁得利"
-  },
-  {
-   "layout": "双图",
-   "title": "……",
-   "body": "……",
-   "emphasis": "……",
-   "foot": "……",
    "second": {
-    "path": "assets/小物件-抠图.png",
+    "path": "assets/书影或物件.jpg",
     "id": "图源ID"
    },
    "hero": {
-    "path": "assets/半身像-抠图.png",
+    "path": "assets/人物.jpg",
+    "cut": "assets/cut/人物-cut.png",
     "id": "图源ID",
     "face": [
      [
       0.45,
+      0.2,
+      0.2,
+      0.15
+     ]
+    ]
+   },
+   "rect_w": 0.36,
+   "rect_h": 0.32,
+   "cut_h": 0.55,
+   "role": "P7–P8 解释机制：为什么会这样，谁得利"
+  },
+  {
+   "layout": "圆像",
+   "title": "……",
+   "body": "……",
+   "emphasis": "……",
+   "hero": {
+    "path": "assets/肖像.jpg",
+    "id": "图源ID",
+    "focus": [
+     0.5,
+     0.3
+    ],
+    "face": [
+     [
       0.4,
-      0.22,
-      0.16
+      0.2,
+      0.2,
+      0.15
      ]
     ]
    },
    "role": "P9 转折：全篇最重的一句判断"
   },
   {
-   "layout": "物件",
+   "layout": "宽幅",
    "title": "……",
    "body": "……",
    "emphasis": "……",
-   "foot": "……",
-   "second": {
-    "path": "assets/横向物件-抠图.png",
-    "id": "图源ID"
-   },
    "hero": {
-    "path": "assets/半身像-抠图.png",
+    "path": "assets/横向画.jpg",
     "id": "图源ID",
-    "face": [
-     [
-      0.45,
-      0.4,
-      0.22,
-      0.16
-     ]
+    "crop": [
+     0,
+     0.1,
+     1,
+     0.6
     ]
    },
+   "rect_h": 0.34,
    "role": "P10 再推一层：从这个人推到这类人、这个时代"
   },
   {
-   "layout": "收尾",
+   "layout": "立像",
+   "side": "left",
    "title": "……",
    "body": "……",
    "emphasis": "……",
    "foot": "最后一句。",
    "hero": {
-    "path": "assets/竖幅画.jpg",
+    "path": "assets/人物.jpg",
+    "cut": "assets/cut/人物-cut.png",
     "id": "图源ID",
     "face": [
      [
@@ -194,10 +184,6 @@
       0.12
      ]
     ]
-   },
-   "second": {
-    "path": "assets/小画.jpg",
-    "id": "图源ID"
    },
    "role": "P11 回扣收尾：把开头的物件拿回来，换个意思"
   }

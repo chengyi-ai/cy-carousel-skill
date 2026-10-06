@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """排版器：内容.json → 页面脚本.json → 1440×1920 成品。
 
-版式来自已验收的成品（第5篇《头上顶着一艘战舰》）：标题、正文、强调句、图片的位置和字号都由模板决定，
+v2（默认，原版风）版式在 layouts_v2.py：图文叠、立像、圆像、渐隐、宽幅、错落——无框照片、人物抠图贴边出血、
+强调色粗黑体标题和强调句、文字绕开人物轮廓排、手绘箭头。下面的旧版式（v1）来自第5篇《头上顶着一艘战舰》，仍可用。
 作者只写文字、选图。排版器负责：
 - 按语意断行（先在标点处断，保护人名、书名、短引文、日期），不留孤字；
 - 按栏高自动挑字号（正文52–60，强调84–108），把间距匀开，减少大块空黑；
@@ -20,6 +21,7 @@ sys.path.insert(0, str(HERE))
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 import render as RD
+import layouts_v2 as V2
 
 W, H = 1440, 1920
 L, RIGHT = 0.056, 0.944
@@ -71,7 +73,7 @@ _FIT_CACHE = {}
 
 def rendered_lines(proto, text):
     """用渲染器同一套换行逻辑数行数（画在4×4的空画布上，只取统计）。"""
-    key = (proto['font'], proto['size'], round(proto['box'][2], 5), proto.get('effect'), text)
+    key = (proto['font'], proto['size'], round(proto['box'][2], 5), proto.get('effect'), proto.get('spacing'), text)
     if key in _FIT_CACHE:
         return _FIT_CACHE[key]
     m = {k: v for k, v in proto.items() if k not in ('effect', 'soft_shadow', 'shadow', 'glow', 'bg', 'stroke_fill')}
@@ -428,8 +430,10 @@ def build_page(i, page, ctx, width_factor=1.0):
     lay = page.get('layout')
     if i == 1 or lay == '封面':
         return cover_page(page, ctx), {'layout': '封面'}
+    if lay in V2.LAYOUTS:
+        return V2.build_page(i, page, ctx, sys.modules[__name__], width_factor)
     if lay not in LAYOUT_NAMES:
-        raise ValueError(f'第{i}张版式「{lay}」不存在；可选：{"、".join(LAYOUT_NAMES[1:])}')
+        raise ValueError(f'第{i}张版式「{lay}」不存在；可选：{"、".join(V2.LAYOUTS + LAYOUT_NAMES[1:])}')
     t_style = page.get('title_style') or ('serif' if i % 2 == 0 else 'brush')
     if re.search(r'\d', page.get('title', '')):
         t_style = 'serif'            # 毛笔字体不写阿拉伯数字
@@ -551,25 +555,67 @@ def cover_page(page, ctx):
     im = im.crop((left, top, left + tw, top + th)).resize((W, H), Image.LANCZOS)
     a = np.asarray(im).astype(np.float32); yy = np.arange(H) / H
     t = np.clip((yy - 0.58) / (0.82 - 0.58), 0, 1); k = 0.5 - 0.5 * np.cos(np.pi * t)
-    a *= (1 - page.get('cover_dark', 0.90) * k)[:, None, None]
+    a *= (1 - page.get('cover_dark', 0.55 if ctx.get('style') == 'v2' else 0.90) * k)[:, None, None]
     work.mkdir(parents=True, exist_ok=True)
     out = work / 'cover-bg.jpg'
     Image.fromarray(a.clip(0, 255).astype('uint8')).save(out, quality=94)
     shadow = {'color': '#000000', 'offset': [6, 7], 'blur': 5, 'opacity': 0.43}
-    l1 = {**brush(page['line1'], [L, 0.745, 0.89, 0.07], page.get('line1_size', 98), WHITE), 'font': 'cover-title', 'soft_shadow': shadow}
-    size2 = page.get('line2_size', 156)
+    v2 = ctx.get('style') == 'v2'
+    face = 'cover-display' if v2 else 'cover-title'   # v2：封面用思源宋体 Black＋立体投影（内页标题另用 title-display）
+    l1 = {**brush(page['line1'], [L, 0.752 if v2 else 0.745, 0.89, 0.08 if v2 else 0.07], page.get('line1_size', 112 if v2 else 98), WHITE),
+          'font': face, 'soft_shadow': shadow}
+    size2 = page.get('line2_size', 168 if v2 else 156)
     while True:
-        l2 = {**brush(page['line2'], [0.095, 0.835, 0.85, 0.105], size2, accent), 'font': 'cover-title', 'soft_shadow': shadow}
-        if fits(l2, page['line2']) or size2 <= 118:
+        # v2：第二行尽量撑到画面宽度的八成左右（短句字就大），和对标账号一致
+        l2 = {**brush(page['line2'], [L if v2 else 0.095, 0.828 if v2 else 0.835, 0.80 if v2 else 0.85, 0.115 if v2 else 0.105], size2, accent),
+              'font': face, 'soft_shadow': shadow}
+        if fits(l2, page['line2']) or size2 <= 100:
             break
         size2 -= 6
+    if v2:
+        l2['box'][2] = 0.89
+        if page.get('line2_align'):
+            l2['align'] = page['line2_align']
+            if page['line2_align'] == 'right':
+                l2['box'][2] = 0.915 - l2['box'][0]     # 靠右时离边框留够 60px 以上（含阴影）
+        if page.get('line1_align'):
+            l1['align'] = page['line1_align']
+        if page.get('line2_indent'):
+            l2['box'][0] += page['line2_indent']; l2['box'][2] -= page['line2_indent']
+        for e in (l1, l2):
+            e.update(depth=12, bold=1, shadow_color='#000000', soft_shadow={'color': '#000000', 'offset': [8, 11], 'blur': 9, 'opacity': 0.7})
     if not fits(l2, page['line2']):
         raise ValueError(f'封面第二行太长：{page["line2"]}（请控制在8字以内）')
     if not fits(l1, page['line1']):
         raise ValueError(f'封面第一行太长：{page["line1"]}（请控制在11字以内）')
     rel = out.relative_to(root).as_posix()
+    if v2 and page.get('cover_style') == 'cutout':
+        # 抠图封面：整幅图压暗偏旧色当底，人物抠图放大压在上面，加强调色光边（原版「帝国皇子」那种）
+        import layouts_v2 as V
+        bg = Image.open(out).convert('RGB')
+        from PIL import ImageEnhance, ImageOps
+        if page.get('cover_bg'):                       # 底图换一张，免得和抠出的人物重影
+            b = page['cover_bg']; bp, (bw_, bh_), _ = img_meta(b, root)
+            bim = Image.open(bp).convert('RGB')
+            if b.get('crop'):
+                c = b['crop']; bim = bim.crop((round(c[0] * bw_), round(c[1] * bh_), round(c[2] * bw_), round(c[3] * bh_)))
+            bg = ImageOps.fit(bim, (W, H), Image.LANCZOS, centering=tuple(b.get('focus', [0.5, 0.5])))
+        g = ImageOps.colorize(bg.convert('L'), '#120c08', '#bfa78a')
+        g = ImageEnhance.Brightness(g).enhance(0.55)
+        g.save(out, quality=94)
+        cut = page.get('cut') or spec.get('cut')
+        ce, alpha = V.place_cutout({**spec, 'cut': cut, 'max_scale': 1.6}, root, work, page.get('cut_side', 'center'),
+                                   page.get('cut_h', 0.86), page.get('cut_w', 0.86), bottom=1.0)
+        ce['soft_shadow'] = {'color': accent, 'offset': [0, 0], 'blur': 26, 'opacity': 0.95}
+        ce['outline'] = accent; ce['outline_width'] = 11
+        ce['role'] = 'background'; ce['cover_figure'] = True    # 封面标题本来就压在人物下半身上；人脸在上半部，标题碰不到
+        return {'layout': 'cover', 'background': '#000000', 'skeleton': '封面·抠图光边', 'watermark': False,
+                'border': accent if page.get('border', False) else None, 'border_width': page.get('border_width', 20),
+                'elements': [{'kind': 'image', 'path': rel, 'source_id': sid(spec), 'box': [0, 0, 1, 1], 'fit': 'cover',
+                              'role': 'background', 'darken': 0.0, 'face_boxes': [], 'face_detection_method': 'manual-verified'},
+                             {**ce, 'coverage': True}, l1, l2]}
     return {'layout': 'cover', 'background': '#000000', 'skeleton': '封面·人物大脸', 'watermark': False,
-            'border': accent, 'border_width': 5,
+            'border': accent if page.get('border', True) else None, 'border_width': page.get('border_width', 20 if ctx.get('style') == 'v2' else 5),
             'elements': [{'kind': 'image', 'path': rel, 'source_id': sid(spec), 'box': [0, 0, 1, 1], 'fit': 'cover',
                           'role': 'background', 'darken': 0.04, 'face_boxes': [], 'face_detection_method': 'manual-verified'},
                          l1, l2]}
@@ -674,12 +720,29 @@ def main():
         return
     out = (a.out or root / '成品').resolve(); out.mkdir(parents=True, exist_ok=True)
     work = root / '_build'
-    ctx = {'accent': accent, 'root': root, 'protect': content.get('protect', []), 'work': work}
+    style = content.get('style') or ('v2' if any(p.get('layout') in V2.LAYOUTS for p in content['pages']) else 'v1')
+    ctx = {'accent': accent, 'root': root, 'protect': content.get('protect', []), 'work': work, 'style': style,
+           'max_arrows': content.get('max_arrows', 6), 'topic': content.get('topic', ''), 'fx': content.get('fx', {})}
+    if style == 'v2' and content.get('accent2'):
+        # 第二强调色：默认关。和素材色调不搭会很突兀（09 慈禧加黄色被否），只在 内容.json 写了 "accent2" 时启用
+        from PIL import ImageColor
+        r_, g_, b_ = ImageColor.getrgb(accent)[:3]
+        yellowish = r_ > 200 and g_ > 170 and b_ < 140
+        ctx['accent2'] = content['accent2'] if isinstance(content.get('accent2'), str) else ('#FF6FAE' if yellowish else '#FFD84D')
+    for k in ('stack_rate', 'ghost_rate', 'title_mid_rate', 'accent2_rate'):      # 全篇比例，可在 内容.json 顶层覆盖
+        if k in content:
+            ctx[k] = content[k]
     config = {'tone': '暗', 'accent': accent, 'background': '#000000', 'account_name': content.get('account', '账号名'),
               'watermark_text': content.get('account', '账号名'), 'watermark_style': 'neutral', 'bookmark': False,
               'cover_only': False, 'background_profile': 'mixed-v2', 'visual_profile': 'v7-richness',
               'text_color_profile': 'v7.4-alternation', 'avoid_watermark_overlap': True,
               'require_face_every_page': content.get('require_face_every_page', True)}
+    if content.get('title_font'):
+        # 标题展示字体：字库放在选题目录里（相对路径），只用官方渠道、允许商用的字体
+        config['fonts'] = {**config.get('fonts', {}), 'title-display': {'path': content['title_font'], 'weight': None}}
+        CFG['fonts'] = config['fonts']                 # 断行测量也要用同一个字体
+        from io_paths import set_assets_root
+        set_assets_root(root)
     pages = content['pages']
     only = [int(x) for x in a.pages.split(',')] if a.pages else list(range(1, len(pages) + 1))
     script = {'schema_version': 1, 'built_by': 'build.py', 'topic': content.get('topic', ''), 'tone': '暗', 'mode': 'production',
@@ -756,6 +819,7 @@ def main():
         if rp.exists():
             r = json.loads(rp.read_text())[0]; r['page'] = k; reports.append(r)
     (out / 'render-report.json').write_text(json.dumps(reports, ensure_ascii=False, indent=2))
+    warnings += list(dict.fromkeys(ctx.get('warnings', [])))
     warnings += copy_checks(content)
     (out / '排版报告.json').write_text(json.dumps({'pages': summary, 'warnings': warnings}, ensure_ascii=False, indent=2))
     inner = [r['blank_tiles'] for r in summary if r['page'] > 1]

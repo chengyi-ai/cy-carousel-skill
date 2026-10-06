@@ -1,0 +1,483 @@
+{
+ "topic": "1692塞勒姆女巫案：看不见的证据",
+ "account": "程意",
+ "accent": "#FF4040",
+ "thesis": "人们以为女巫是被烧死的；1692年的塞勒姆，没有一个人被烧死，判她们死刑的，是一种谁也看不见的证据。",
+ "protect": [
+  "塞勒姆",
+  "莎拉·古德",
+  "莎拉·奥斯本",
+  "蒂图巴",
+  "布里奇特·毕晓普",
+  "多萝西",
+  "吉尔斯·科里",
+  "英克里斯·马瑟",
+  "塞缪尔·休厄尔",
+  "伊丽莎白·约翰逊",
+  "艾比盖尔",
+  "马萨诸塞州",
+  "秦桧",
+  "莫须有",
+  "菲普斯",
+  "幽灵证据"
+ ],
+ "pages": [
+  {
+   "layout": "封面",
+   "line1": "她们被判死刑，凭的是：",
+   "line2": "看不见的证据",
+   "hero": {
+    "path": "assets/witch-no1-woman.jpg",
+    "cut": "assets/cut/witch-no1-woman-cut.png",
+    "id": "loc-2003677961-baker-witch-no1",
+    "face": [
+     [
+      0.562,
+      0.341,
+      0.085,
+      0.043
+     ]
+    ],
+    "crop": [
+     0.0,
+     0.0,
+     1.0,
+     0.75
+    ],
+    "focus": [
+     0.5,
+     0.3
+    ]
+   },
+   "cover_style": "cutout",
+   "border": false,
+   "cut_h": 0.8,
+   "cut_w": 0.8,
+   "cover_bg": {
+    "path": "assets/salem-village-1876.jpg",
+    "id": "commons-witchcraft-at-salem-village-1876",
+    "focus": [
+     0.35,
+     0.5
+    ]
+   }
+  },
+  {
+   "layout": "大图",
+   "title": "塞勒姆的女巫，\n没有一个被烧死",
+   "body": "说起猎巫，很多人想到火刑。可在1692年的塞勒姆，没有一个人被烧死：19人被绞死，1人被石头压死，至少5人死在牢里。\n\n被指控的人，超过200个。",
+   "emphasis": "比火更可怕的，是证据。",
+   "pos": "top",
+   "band_h": 0.5,
+   "hero": {
+    "path": "assets/salem-village-1876.jpg",
+    "id": "commons-witchcraft-at-salem-village-1876",
+    "face": [
+     [
+      0.592,
+      0.222,
+      0.029,
+      0.041
+     ]
+    ],
+    "focus": [
+     0.5,
+     0.4
+    ]
+   },
+   "second": {
+    "path": "assets/wildes-warrant.jpg",
+    "id": "commons-wildes-arrest-warrant-1692",
+    "focus": [
+     0.5,
+     0.3
+    ],
+    "label": "1692年4月的逮捕令"
+   },
+   "rect_h": 0.3,
+   "rect_w": 0.3
+  },
+  {
+   "layout": "渐隐",
+   "title": "「莫须有」",
+   "body": "1142年，岳飞被定罪，秦桧给出的理由是「莫须有」。550年后的塞勒姆，法庭倒是有证据，只是这种证据，[[谁也看不见]]。\n\n「莫须有」是拿不出证据；塞勒姆的法庭，是把「看不见」本身当成了证据。",
+   "emphasis": "证据有，\n只是看不见。",
+   "darken": 0.62,
+   "backdrop": {
+    "path": "assets/matteson-exam.jpg",
+    "id": "pem-matteson-examination-1853",
+    "face": [
+     [
+      0.464,
+      0.439,
+      0.028,
+      0.04
+     ]
+    ],
+    "focus": [
+     0.35,
+     0.5
+    ]
+   }
+  },
+  {
+   "layout": "拼贴",
+   "body": "1692年2月，牧师家9岁的女儿贝蒂和11岁的表姐艾比盖尔，突然尖叫、抽搐。医生查不出病因，说她们[[中了巫术]]。在大人们的追问下，女孩们说出了几个名字。\n\n没过多久，村里又有好几个女孩，出现了同样的症状。",
+   "emphasis": "病因找不到，\n就找一个人。",
+   "side": "right",
+   "images": [
+    {
+     "path": "assets/matteson-exam.jpg",
+     "id": "pem-matteson-examination-1853",
+     "crop": [
+      0.62,
+      0.3,
+      0.98,
+      0.98
+     ],
+     "face": [
+      [
+       0.761,
+       0.523,
+       0.035,
+       0.049
+      ]
+     ],
+     "focus": [
+      0.5,
+      0.35
+     ],
+     "w": 0.46,
+     "as": "oval"
+    },
+    {
+     "path": "assets/matteson-jacobs.jpg",
+     "id": "commons-matteson-trial-of-george-jacobs-1855",
+     "crop": [
+      0.0,
+      0.55,
+      0.62,
+      1.0
+     ],
+     "focus": [
+      0.5,
+      0.5
+     ],
+     "h": 0.39,
+     "w": 0.74,
+     "bleed": true
+    }
+   ]
+  },
+  {
+   "layout": "拼贴",
+   "title": "最先被指控的人",
+   "body": "3月1日，三个女人被带去问话：乞丐莎拉·古德、很少去教堂的莎拉·奥斯本，还有牧师家的奴隶蒂图巴。[[蒂图巴招认了]]，还说另外两人也是同伙。\n\n她的供词里有黑狗、猪、黄鸟、红猫，还有狐狸和狼。恐慌一下子有了「证词」。",
+   "emphasis": "她们都是最容易被怀疑的人。",
+   "side": "right",
+   "images": [
+    {
+     "path": "assets/pyle-arrest.jpg",
+     "id": "pyle-arresting-a-witch-1883",
+     "crop": [
+      0.0,
+      0.0,
+      1.0,
+      0.94
+     ],
+     "focus": [
+      0.5,
+      0.3
+     ],
+     "h": 0.39,
+     "w": 0.48
+    },
+    {
+     "path": "assets/tituba-ehninger.jpg",
+     "id": "commons-ehninger-tituba-1880",
+     "cut": "assets/cut/tituba-ehninger-left-cut.png",
+     "h": 0.515,
+     "w": 0.56,
+     "label": "蒂图巴"
+    }
+   ]
+  },
+  {
+   "layout": "拼贴",
+   "title": "幽灵证据",
+   "body": "6月，专审巫案的法庭开庭。指控者说：「我看见她的魂飞过来，掐我、咬我。」法庭把这当作证据，叫「[[幽灵证据]]」。\n\n法庭上，女孩们当场尖叫、倒地，说被告的魂正在掐她们。",
+   "note": "被告本人当时在哪里，并不重要。",
+   "emphasis": "你没法证明，\n你的魂没来过。",
+   "side": "right",
+   "images": [
+    {
+     "path": "assets/witch-pins.jpg",
+     "id": "commons-cousins-witch-pins",
+     "crop": [
+      0.24,
+      0.17,
+      0.8,
+      0.66
+     ],
+     "focus": [
+      0.5,
+      0.5
+     ],
+     "h": 0.312,
+     "w": 0.432,
+     "label": "法庭档案里的「女巫针」"
+    },
+    {
+     "path": "assets/pyle-yellowbirds.jpg",
+     "id": "pyle-yellow-birds-1892",
+     "h": 0.46,
+     "w": 0.6,
+     "bleed": true
+    }
+   ]
+  },
+  {
+   "layout": "错落",
+   "title": "6月10日，\n第一个被绞死",
+   "body": "布里奇特·毕晓普被几个女孩指认：她的魂掐她们、咬她们。法庭还派一群女人给她搜身，说找到了「女巫印记」；第二次再查，[[又找不到了]]。",
+   "emphasis": "找不到，也照样定罪。",
+   "hero": {
+    "path": "assets/witch-no1-woman.jpg",
+    "id": "loc-2003677961-baker-witch-no1",
+    "cut": "assets/cut/witch-no1-woman-cut.png",
+    "face": [
+     [
+      0.562,
+      0.341,
+      0.085,
+      0.043
+     ]
+    ]
+   },
+   "rect_w": 0.4,
+   "rect_h": 0.36,
+   "cut_h": 0.6,
+   "cut_w": 0.56,
+   "second": {
+    "path": "assets/bishop-warrant.jpg",
+    "id": "commons-bishop-death-warrant-cousins",
+    "crop": [
+     0.12,
+     0.09,
+     0.93,
+     0.94
+    ],
+    "focus": [
+     0.5,
+     0.3
+    ]
+   }
+  },
+  {
+   "layout": "拼贴",
+   "title": "4岁的被告",
+   "body": "莎拉·古德4岁的女儿多萝西也被关了进去。3月24日入狱，[[12月10日]]才交保出来。7月19日，她的母亲被绞死。\n\n她还说，母亲给过她一条会说话的蛇，会吸她手指上的血。这样的话，也被拿来指控她的母亲。",
+   "note": "父亲后来写：她被铁链锁在地牢里，吓坏了，从此几乎无法自理。",
+   "emphasis": "铁链锁住的，\n是个孩子。",
+   "side": "right",
+   "images": [
+    {
+     "path": "assets/salem-village-1876.jpg",
+     "id": "commons-witchcraft-at-salem-village-1876",
+     "crop": [
+      0.3,
+      0.05,
+      1.0,
+      0.95
+     ],
+     "face": [
+      [
+       0.592,
+       0.222,
+       0.029,
+       0.041
+      ]
+     ],
+     "focus": [
+      0.5,
+      0.4
+     ],
+     "h": 0.416,
+     "w": 0.672
+    }
+   ]
+  },
+  {
+   "layout": "渐隐",
+   "body": "吉尔斯·科里[[拒绝答辩]]。9月17日起，人们在他身上一块块加石头，压了两天，他死了。据说，他这样做是为了保住留给孩子的家产。\n\n他81岁。他死后第三天，9月22日，妻子玛莎也被绞死。",
+   "emphasis": "到死，\n他也没认罪。",
+   "darken": 0.62,
+   "backdrop": {
+    "path": "assets/matteson-jacobs.jpg",
+    "id": "commons-matteson-trial-of-george-jacobs-1855",
+    "face": [
+     [
+      0.218,
+      0.466,
+      0.03,
+      0.047
+     ]
+    ],
+    "focus": [
+     0.6,
+     0.5
+    ]
+   },
+   "second": {
+    "path": "assets/pyle-corey.jpg",
+    "id": "pyle-giles-corey-1893",
+    "crop": [
+     0.0,
+     0.0,
+     1.0,
+     0.92
+    ],
+    "face": [
+     [
+      0.516,
+      0.159,
+      0.068,
+      0.044
+     ]
+    ]
+   },
+   "cut_h": 0.52,
+   "cut_w": 0.46
+  },
+  {
+   "layout": "拼贴",
+   "title": "有人开口了",
+   "body": "1692年10月，牧师英克里斯·马瑟写道：「宁可放过十个可疑的女巫，也不能让一个无辜的人被定罪。」不久，[[总督解散了那个法庭]]。\n\n这段话出自他的《良心的案例》。",
+   "note": "1693年的新法庭不再采信幽灵证据，只判了3人有罪，后来都获赦免。",
+   "emphasis": "幽灵证据，\n不算数了。",
+   "side": "right",
+   "images": [
+    {
+     "path": "assets/cases-conscience.jpg",
+     "id": "loc-2005692000-cases-of-conscience-1693",
+     "crop": [
+      0.02,
+      0.05,
+      0.98,
+      0.99
+     ],
+     "focus": [
+      0.5,
+      0.3
+     ],
+     "h": 0.34,
+     "w": 0.3,
+     "overlay": false
+    },
+    {
+     "path": "assets/imather.jpg",
+     "cut": "assets/cut/imather-cut.png",
+     "id": "mhs-increase-mather-1688",
+     "face": [
+      [
+       0.528,
+       0.157,
+       0.149,
+       0.125
+      ]
+     ],
+     "h": 0.5,
+     "w": 0.58,
+     "label": "英克里斯·马瑟"
+    },
+    {
+     "path": "assets/phips.jpg",
+     "id": "nara-193068-william-phips",
+     "crop": [
+      0.13,
+      0.08,
+      0.84,
+      0.73
+     ],
+     "face": [
+      [
+       0.418,
+       0.281,
+       0.098,
+       0.062
+      ]
+     ],
+     "focus": [
+      0.5,
+      0.35
+     ],
+     "as": "oval",
+     "w": 0.3,
+     "label": "总督菲普斯"
+    }
+   ]
+  },
+  {
+   "layout": "大图",
+   "body": "1697年1月14日，审过这些案子的法官塞缪尔·休厄尔，在教堂里站着，听牧师念他的认罪书。1711年，殖民地议会为[[22个人]]撤销了判决。\n\n他还呼吁设一个公开的祈祷、禁食日，并给受害者家属赔偿。",
+   "emphasis": "可死去的人，回不来了。",
+   "pos": "top",
+   "band_h": 0.56,
+   "hero": {
+    "path": "assets/sewall.jpg",
+    "id": "pem-smibert-sewall-1733",
+    "crop": [
+     0.12,
+     0.04,
+     0.92,
+     0.6
+    ],
+    "face": [
+     [
+      0.41,
+      0.169,
+      0.265,
+      0.221
+     ]
+    ],
+    "focus": [
+     0.5,
+     0.35
+    ],
+    "label": "法官塞缪尔·休厄尔"
+   }
+  },
+  {
+   "layout": "立像",
+   "title": "2022年，\n最后一个「女巫」平反",
+   "body": "伊丽莎白·约翰逊1693年被判死刑，后来获赦，却一直没有被正式平反。2022年，马萨诸塞州终于还了她清白。推动这件事的，是一位[[八年级老师和她的学生]]。",
+   "emphasis": "定罪很快，\n平反很慢。",
+   "foot": "329年前，她被一种看不见的证据定了罪。",
+   "hero": {
+    "path": "assets/noble-martyr.jpg",
+    "id": "nyhs-noble-salem-martyr-1869",
+    "cut": "assets/cut/noble-martyr-cut.png",
+    "face": [
+     [
+      0.443,
+      0.199,
+      0.112,
+      0.075
+     ]
+    ],
+    "label": "画家笔下的「殉道者」"
+   },
+   "cut_h": 0.64,
+   "cut_w": 0.6
+  }
+ ],
+ "style": "v2",
+ "fx": {
+  "cut": "outline",
+  "outline_color": "#FFFFFF",
+  "outline_width": 16,
+  "rect": "glow",
+  "every": 3
+ },
+ "title_font": "fonts/AlimamaShuHeiTi-Bold.ttf"
+}

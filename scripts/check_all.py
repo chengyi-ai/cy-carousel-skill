@@ -19,7 +19,10 @@ def red_lines(n,p,r):
  for e in p.get('elements',[]):
   if e.get('kind')=='caption':out.append(f'P{n:02}有图注：图上不写出处/说明，出处统一放置顶评论')
   if e.get('kind')=='text':
-   if e.get('size',60)<48:out.append(f'P{n:02}文字小于48px（像图注/页眉）：{e["text"][:12]}')
+   if e.get('text_role')=='label':
+    if e.get('size',60)<28:out.append(f'P{n:02}人名标签小于28px：{e["text"][:12]}')
+    if re.search(r'(?i)wikimedia|commons|博物馆藏|public domain|CC[ -]?BY|CC0|图源|来源',e['text']):out.append(f'P{n:02}标签里写了出处/授权：{e["text"][:12]}（出处放置顶评论）')
+   elif e.get('size',60)<48:out.append(f'P{n:02}文字小于48px（像图注/页眉）：{e["text"][:12]}')
    if PAGE_COUNTER.search(e['text']):out.append(f'P{n:02}有页码/栏目编号：{e["text"][:12]}')
  if p.get('layout')!='cover':
   for t in r.get('text',[]):
