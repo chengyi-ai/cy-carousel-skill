@@ -643,8 +643,11 @@ def plan_zoom(z, images, texts, root, work, accent, top):
     vx, vy = (zcx - rcx) * W, (zcy - rcy) * H
     dist = max(1.0, (vx * vx + vy * vy) ** 0.5)
     ux, uy = vx / dist, vy / dist
-    rr = max(rp[2] * W, rp[3] * H) / 2 + 12
-    zr = max(zw * W, zh * H) / 2 + 10
+    def edge(a, b, pad):                                # 沿方向 (ux,uy) 走到椭圆/矩形边上的距离
+        a, b = a + pad, b + pad
+        return 1.0 / max(1e-6, ((ux / a) ** 2 + (uy / b) ** 2) ** 0.5)
+    rr = edge(rp[2] * W / 2, rp[3] * H / 2, 12)
+    zr = edge(zw * W / 2, zh * H / 2, 10)
     sx, sy = rcx * W + ux * rr, rcy * H + uy * rr
     ex, ey = zcx * W - ux * zr, zcy * H - uy * zr
     arrows = []
@@ -862,10 +865,14 @@ def build_page(i, page, ctx, T, factor=1.0):
         d_txts = [e for e in dp['elements'] if e.get('kind') == 'text']
         zs = page['zoom'] if isinstance(page['zoom'], list) else [page['zoom']]
         top = max([t['box'][1] + t['box'][3] for t in d_txts if t.get('text_role') == 'heading' and t['box'][1] < 0.12] + [TOP]) + 0.01   # 只看顶上的标题
-        for z in zs:
+        for zi, z in enumerate(zs):
             els, oc, err = plan_zoom(z, d_imgs, d_txts + [e for e in zoom_els if e.get('kind') == 'image'], root, work, accent, top)
             if err:
                 ctx.setdefault('warnings', []).append(f'第{i}张：{err}')
+            src = next((e for e in d_imgs if e.get('kind') in ('image', 'dark_backdrop') and not e.get('ghost')
+                        and (z.get('src', '') in (e.get('source_id') or '') or z.get('src', '') in (e.get('_src_path') or ''))), None)
+            for e in els:                               # 记下规划时原图的位置，正式排完后核对
+                e['_zgroup'] = zi; e['_zsrcbox'] = list(src['box']) if src else None
             zoom_els += els; zoom_occ += oc
     paras = paragraphs(page.get('body', ''))
     hero, second, bd = page.get('hero'), page.get('second'), page.get('backdrop')
@@ -1207,6 +1214,28 @@ def build_page(i, page, ctx, T, factor=1.0):
         raise ValueError(f'第{i}张「{lay}」文字放不下：删一点正文，或调小 cut_h / rect_h')
 
     images, texts, target, occ = last
+    if zoom_els:
+        # 正式排版时图可能被缩小、挪动（文字放不下）。原图位置变了，就按最终的图和文字重新摆放大图
+        zs = page['zoom'] if isinstance(page['zoom'], list) else [page['zoom']]
+        final = []
+        for zi, z in enumerate(zs):
+            grp = [e for e in zoom_els if e.get('_zgroup') == zi]
+            src = next((e for e in images if e.get('kind') in ('image', 'dark_backdrop') and not e.get('ghost')
+                        and (z.get('src', '') in (e.get('source_id') or '') or z.get('src', '') in (e.get('_src_path') or ''))), None)
+            old_box = grp[0].get('_zsrcbox') if grp else None
+            if src is None:
+                continue
+            if grp and old_box and all(abs(a - b) < 0.002 for a, b in zip(old_box, src['box'])):
+                final += grp
+                continue
+            top_ = max([t['box'][1] + t['box'][3] for t in texts if t.get('text_role') == 'heading' and t['box'][1] < 0.12] + [TOP]) + 0.01
+            els, _, err = plan_zoom(z, images, texts + [e for e in final if e.get('kind') == 'image'], root, work, accent, top_)
+            if err:
+                ctx.setdefault('warnings', []).append(f'第{i}张：局部放大重排失败，已去掉：{err}')
+            final += els
+        for e in final:
+            e.pop('_zgroup', None); e.pop('_zsrcbox', None)
+        zoom_els = final
     images += zoom_els
     a2 = ctx.get('accent2')
     if a2:                                              # 第二强调色：约三成页面的高亮词、强调句换成它

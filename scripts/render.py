@@ -145,6 +145,8 @@ def draw_3d_text(canvas,e,cfg,W,H,audit):
                punctuation_shift=0 if plain['tight_punctuation']=='all' else plain['punctuation_shift'])
  audit.append(record)
 
+LATIN_CHARS=set('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789%.+')
+
 def draw_text(canvas,e,cfg,W,H,audit):
  if e.get('effect')=='3d':return draw_3d_text(canvas,e,cfg,W,H,audit)
  if e.get('glow'):
@@ -175,7 +177,9 @@ def draw_text(canvas,e,cfg,W,H,audit):
  for ch,color in chars:
   if ch=='\n':lines.append((line,width));line=[];width=0;previous_ink=None;previous_char=None;continue
   cf=f;shift=0
-  if not ch.isspace() and missing_glyph(f,ch):
+  # 可选：毛笔等标题里的英文字母和数字换成黑体（latin_font），默认 0.92 倍字号、共用基线。
+  if e.get('latin_font') and ch in LATIN_CHARS:cf=font(e['latin_font'],size*e.get('latin_scale',.92),cfg)
+  if not ch.isspace() and missing_glyph(cf,ch):
    cf=font(e.get('fallback_font','sans-bold'),size,cfg)
    if missing_glyph(cf,ch):raise ValueError('主字体与补字字体均缺字：'+ch)
    fallbacks.add(ch)
