@@ -37,6 +37,7 @@ def init(note, protect=(), out='collage'):
     NOTE = Path(note); OUT = NOTE / out; OUT.mkdir(parents=True, exist_ok=True)
     PROTECT = list(protect)
     if not OCR.exists():
+        OCR.parent.mkdir(parents=True, exist_ok=True)
         subprocess.run(['swiftc', '-O', str(HERE / 'ocrfind.swift'), '-o', str(OCR)], check=True)
 
 

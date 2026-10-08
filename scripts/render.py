@@ -255,7 +255,7 @@ def draw_text(canvas,e,cfg,W,H,audit):
   'font':e.get('font','body'),'font_file':font_info,'size':e.get('size',60),'stroke_width':e.get('stroke',0),
   'stroke_fill':e.get('stroke_fill'),'soft_shadow':e.get('soft_shadow'),'ink_bounds':bounds,
   'fallback_characters':sorted(fallbacks),'compact_punctuation_advances':compact,
-  'tight_punctuation':e.get('tight_punctuation',False),'punctuation_gaps':gaps,'glyphs':glyphs})
+  'tight_punctuation':e.get('tight_punctuation',False),'punctuation_gaps':gaps,'glyphs':glyphs,'latin_font':e.get('latin_font')})
 
 def punctuation_gaps(glyphs,size):
  """按同一行相邻可见字形的真实墨迹边界测空白；空格与换行不跨越。"""

@@ -73,7 +73,7 @@ def check_note(script,pages,report=None,assets_root=None,products=False):
    if t.get('used_height',0)>t.get('capacity_height',0)+1:errors.append(f'P{n:02}正文盒溢出')
    brush='MaShanZheng' in t.get('font_file',{}).get('path','')
    if brush:
-    if re.search(r'[0-9]',t['text']):errors.append(f'P{n:02}毛笔标题含数字')
+    if re.search(r'[0-9]',t['text']) and not t.get('latin_font'):errors.append(f'P{n:02}毛笔标题含数字（加 latin_font 让数字用黑体）')
     if any(v['adjacent_han'] and (v['gap_em']>.2 or v['gap_em']<-.001) for v in t.get('punctuation_gaps',[])):errors.append(f'P{n:02}毛笔标点间距不合格')
     if cfg['tone']=='暗' and t.get('effect')=='3d' and (t.get('depth')!=7 or t.get('bold')!=1 or t.get('external_outline')):errors.append(f'P{n:02}毛笔立体效果不符合清晰版B')
   for c in r.get('components',[]):
