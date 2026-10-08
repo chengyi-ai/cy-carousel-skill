@@ -1,4 +1,6 @@
-# lishi-tuwen · 历史图文轮播 Skill
+# cy-carousel · 历史图文轮播 Skill
+
+（2026-10-09 起改名，原名 lishi-tuwen；GitHub 旧地址会自动跳转。）
 
 给一个历史选题，按一套已经打磨好的版式，做出一篇能直接发小红书的图文笔记：**封面加 8–12 页内页（1440×1920）、标题、正文、话题标签、置顶评论和来源清单**，全程有事实核查、图片授权记录和自动检查。
 
@@ -59,15 +61,15 @@
 ### 装到 Claude Code
 
 ```bash
-git clone https://github.com/chengyi-ai/lishi-tuwen-skill.git ~/.claude/skills/lishi-tuwen
-python3 -m pip install -r ~/.claude/skills/lishi-tuwen/requirements.txt
+git clone https://github.com/chengyi-ai/cy-carousel-skill.git ~/.claude/skills/cy-carousel
+python3 -m pip install -r ~/.claude/skills/cy-carousel/requirements.txt
 ```
 
 ### 装到 Codex
 
 ```bash
-git clone https://github.com/chengyi-ai/lishi-tuwen-skill.git ~/.codex/skills/lishi-tuwen
-python3 -m pip install -r ~/.codex/skills/lishi-tuwen/requirements.txt
+git clone https://github.com/chengyi-ai/cy-carousel-skill.git ~/.codex/skills/cy-carousel
+python3 -m pip install -r ~/.codex/skills/cy-carousel/requirements.txt
 ```
 
 装好以后**新开一个对话**，Skill 才会被识别。
@@ -75,10 +77,10 @@ python3 -m pip install -r ~/.codex/skills/lishi-tuwen/requirements.txt
 ### 更新
 
 ```bash
-git -C ~/.claude/skills/lishi-tuwen pull
+git -C ~/.claude/skills/cy-carousel pull
 ```
 
-Codex 那份把路径换成 `~/.codex/skills/lishi-tuwen` 即可。
+Codex 那份把路径换成 `~/.codex/skills/cy-carousel` 即可。
 
 ---
 
@@ -88,7 +90,7 @@ Codex 那份把路径换成 `~/.codex/skills/lishi-tuwen` 即可。
 
 在 Claude Code 或 Codex 里说：
 
-> 用 lishi-tuwen 做一篇历史图文，选题：维多利亚时代的砷绿墙纸，主强调色绿色，账号名填「XXX」。按 SKILL.md 的红线来，用 build.py 排版，做完给我看全套预览。
+> 用 cy-carousel 做一篇历史图文，选题：维多利亚时代的砷绿墙纸，主强调色绿色，账号名填「XXX」。按 SKILL.md 的红线来，用 build.py 排版，做完给我看全套预览。
 
 AI 会先查证、找图，再写 `内容.json`，最后用排版器出图。**如果 AI 自己写了网页、用了别的模板，或者图上出现图注、页眉、页码，就是没按 Skill 做**，让它回到 `build.py` 重排。
 
@@ -158,7 +160,7 @@ swift scripts/检测人脸.swift 人脸输入.json 人脸结果.json
 ## 目录结构
 
 ```
-lishi-tuwen/
+cy-carousel/
   SKILL.md                 AI 读取的主说明：流程、硬规则、入口
   README.md                本文件
   requirements.txt
