@@ -73,7 +73,8 @@ _FIT_CACHE = {}
 
 def rendered_lines(proto, text):
     """用渲染器同一套换行逻辑数行数（画在4×4的空画布上，只取统计）。"""
-    key = (proto['font'], proto['size'], round(proto['box'][2], 5), proto.get('effect'), proto.get('spacing'), text)
+    key = (proto['font'], proto['size'], round(proto['box'][2], 5), proto.get('effect'), proto.get('spacing'), text,
+           proto.get('hscale'), proto.get('typo'), proto.get('latin_font'), proto.get('latin_scale'), proto.get('stroke'))
     if key in _FIT_CACHE:
         return _FIT_CACHE[key]
     m = {k: v for k, v in proto.items() if k not in ('effect', 'soft_shadow', 'shadow', 'glow', 'bg', 'stroke_fill')}

@@ -64,9 +64,13 @@ cy-carousel/
     render.py          渲染（毛笔标题的英文数字用 latin_font 换黑体）
     check_all.py       红线和技术检查
     package.py         打包成品
+    对照.py            参照页 vs 我们的页：并排对照图＋文字行偏差表（Vision OCR＋颜色阈值）
     blind_test.py      盲测拼图
     build.py  layouts_v2.py  …   底层库（断行、字体配置），不直接用来排 AI 选题
     ocrfind.swift  ocr.swift  cutout.swift  检测人脸.swift   macOS Vision 工具
+    emoji.swift        组合 emoji 渲染成透明 PNG（AppKit）
+  references/
+    排字细节.md         正文字体候选、标点混排、两端对齐、横向压缩、图层顺序、对照测量
   assets/
     fonts/             Noto Serif SC、Noto Sans SC、Ma Shan Zheng（附 OFL 许可证）
     templates/         标题、正文、置顶评论、来源模板

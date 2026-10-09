@@ -35,6 +35,30 @@ FONTS={
  'title-display':(FONT_ROOT/'NotoSansSC[wght].ttf',0,900),
  # 封面两行：思源宋体 Black（最接近原版封面的宋黑融合字）
  'cover-display':(FONT_ROOT/'NotoSerifSC[wght].ttf',0,900)}
+# 正文候选字体（按题材选，一篇只用一款）：用到时才去本机/assets/fonts 里找，找不到直接报错，不静默回退。
+# 每项：[(文件 glob, 期望 (family, style) 或 None)]，ttc 按名字找 index。
+_SYS_ASSET='/System/Library/AssetsV2/com_apple_MobileAsset_Font*/*/AssetData/'
+SYSTEM_FONTS={
+ 'songti-sc':[('/System/Library/Fonts/Supplemental/Songti.ttc',('Songti SC','Regular'))],
+ 'songti-sc-bold':[('/System/Library/Fonts/Supplemental/Songti.ttc',('Songti SC','Bold'))],
+ 'fangsong':[(_SYS_ASSET+'STFANGSO.ttf',('STFangsong','Regular')),(str(Path.home()/'Library/Fonts/STFANGSO.ttf'),None)],
+ 'kaiti':[(_SYS_ASSET+'Kaiti.ttc',('Kaiti SC','Regular'))],
+ 'wenkai':[(str(FONT_ROOT/'LXGWWenKai-Medium.ttf'),None),(str(Path.home()/'Library/Fonts/LXGWWenKai-Medium.ttf'),None),('/Library/Fonts/LXGWWenKai-Medium.ttf',None)],
+ 'pingfang-light':[(_SYS_ASSET+'PingFang.ttc',('PingFang SC','Light'))],
+ 'pingfang':[(_SYS_ASSET+'PingFang.ttc',('PingFang SC','Regular'))],
+ 'pingfang-semibold':[(_SYS_ASSET+'PingFang.ttc',('PingFang SC','Semibold'))],
+ 'serif-latin':[('/System/Library/Fonts/Supplemental/Times New Roman.ttf',None)],
+ 'serif-latin-bold':[('/System/Library/Fonts/Supplemental/Times New Roman Bold.ttf',None)]}
+def find_system_font(name):
+ import glob
+ for pattern,want in SYSTEM_FONTS[name]:
+  for path in sorted(glob.glob(pattern)):
+   if want is None:return (Path(path),0,None)
+   for i in range(64):
+    try:f=ImageFont.truetype(path,20,index=i)
+    except OSError:break
+    if f.getname()==want:return (Path(path),i,None)
+ raise FileNotFoundError(f'找不到正文字体 {name}：{[p for p,_ in SYSTEM_FONTS[name]]}。换一款字体，或把字库（如 LXGW WenKai，OFL）放进 assets/fonts/')
 LAYOUTS={'cover','story','split','collage','points','quote','full','ending'}
 from functools import lru_cache
 @lru_cache(maxsize=96)
@@ -59,6 +83,7 @@ def warn_title_fallback(reason):
 def resolved_font(name,size,config):
  """返回实际字库与审计信息；授权入口只覆盖三个标题key，不影响正文。"""
  size=max(1,int(size))
+ if name not in FONTS and name in SYSTEM_FONTS:FONTS[name]=find_system_font(name)
  p,i,weight=FONTS[name];override=config.get('fonts',{}).get(name,{})
  p,i,weight=override.get('path',p),override.get('index',i),override.get('weight',weight)
  if override.get('path'):p=asset_path(Path.cwd(),p)
@@ -147,7 +172,54 @@ def draw_3d_text(canvas,e,cfg,W,H,audit):
 
 LATIN_CHARS=set('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789%.+')
 
+def draw_hscaled(canvas,e,cfg,W,H,audit):
+ """文字层横向压缩（hscale<1 变窄）：在宽 1/hscale 的框里排好，再整体横向缩放，左边 x 不动。审计里的墨迹框同步换算。"""
+ k=float(e['hscale'])
+ if not .5<=k<=1.5:raise ValueError('hscale须在0.5–1.5之间')
+ x,y,w,h=e['box'];x0=x*W
+ inner={**e,'box':[x,y,w/k,h]};inner.pop('hscale')
+ layer=Image.new('RGBA',(math.ceil(max(canvas.width/k,x0+w*W/k+W*.2))+4,canvas.height))
+ n=len(audit);draw_text(layer,inner,cfg,W,H,audit)
+ shrunk=layer.resize((max(1,round(layer.width*k)),layer.height),Image.Resampling.LANCZOS)
+ dx=round(x0*(1-k))
+ if canvas.width-max(dx,0)>0:
+  part=shrunk.crop((max(-dx,0),0,max(-dx,0)+canvas.width-max(dx,0),canvas.height))
+  canvas.alpha_composite(part,(max(dx,0),0))
+ fx=lambda v:round(v*k+dx,2)
+ for r in audit[n:]:
+  r['box']=e['box'];r['hscale']=k
+  for key in ('ink_bounds','effect_bounds'):
+   if r.get(key):b=r[key];r[key]=[fx(b[0]),b[1],fx(b[2]),b[3]]
+  for g in r.get('glyphs') or []:
+   if g['ink_bounds']:b=g['ink_bounds'];g['ink_bounds']=[fx(b[0]),b[1],fx(b[2]),b[3]]
+  for v in r.get('punctuation_gaps') or []:v['gap_pixels']=round(v['gap_pixels']*k,3);v['gap_em']=round(v['gap_em']*k,6)
+
+# 排字规则（typo=True 时生效，数值见 references/排字细节.md）：破折号画两段细线、省略号画三个等距圆点、
+# 【】窄排、间隔号窄排、正文里的数字和拉丁字母换西文衬线字体。
+TYPO={'dash_len':.74,'dash_thick':.045,'dash_adv':.86,'dots_d':.12,'dots_pitch':1/3,'bracket':.44,'bracket_margin':.03,'middot':.30,'latin_font':'serif-latin','latin_scale':1.07,'justify_space_max':.50,'justify_max':.05}
+SQUEEZE_OPEN=set('「『（(“‘《【')
+SQUEEZE=set('，。、：；！？」』）)”’》】')|SQUEEZE_OPEN   # 两端对齐时可挤到半宽的全角标点
+@lru_cache(maxsize=256)
+def han_center(face):
+ b=face.getbbox('国',anchor='ls');return (b[1]+b[3])/2
+
+def draw_special(d,sp,x,baseline,cw,size,face,color,stroke=0):
+ """画排字规则里的图形字：dash（一段细线，两字「——」即两段带间隙）、dots（三个等距圆点）。返回墨迹框。"""
+ cy=baseline+han_center(face)
+ if sp=='dash':
+  L=TYPO['dash_len']*size;t=max(1.5,TYPO['dash_thick']*size+stroke)
+  box=[x+(cw-L)/2,cy-t/2,x+(cw+L)/2,cy+t/2]
+  if d:d.rectangle(box,fill=color)
+ else:
+  r=TYPO['dots_d']*size/2+stroke/2;p=TYPO['dots_pitch']*size;box=None
+  for j in (-1,0,1):
+   c=x+cw/2+j*p
+   if d:d.ellipse([c-r,cy-r,c+r,cy+r],fill=color)
+  box=[x+cw/2-p-r,cy-r,x+cw/2+p+r,cy+r]
+ return box
+
 def draw_text(canvas,e,cfg,W,H,audit):
+ if e.get('hscale',1)!=1:return draw_hscaled(canvas,e,cfg,W,H,audit)
  if e.get('effect')=='3d':return draw_3d_text(canvas,e,cfg,W,H,audit)
  if e.get('glow'):
   setting=e['glow'];setting=setting if isinstance(setting,dict) else {'radius':setting}
@@ -170,19 +242,34 @@ def draw_text(canvas,e,cfg,W,H,audit):
  size=e.get('size',60)*W/1440;spacing=e.get('spacing',2)*W/1440
  f,font_info=resolved_font(e.get('font','body'),size,cfg);lineheight=e.get('lineheight',size*1.36);lineheight*=W/1440 if 'lineheight' in e else 1
  chars=list(rich_chars(e['text'],e.get('accent',cfg['accent']),e.get('fill','#FFFFFF')))
- lines=[];line=[];width=0;fallbacks=set();compact={};previous_ink=None;previous_char=None
+ lines=[];line=[];width=0;fallbacks=set();compact={};previous_ink=None;previous_char=None;soft=[]
  optical=e.get('tight_punctuation')=='all';gap=e.get('punctuation_gap',.10)*size
+ typo=bool(e.get('typo'));stroke=e.get('stroke',0)
+ latin_key=e.get('latin_font') or (TYPO['latin_font'] if typo else None)
+ latin_scale=e.get('latin_scale',TYPO['latin_scale'] if typo and not e.get('latin_font') else .92)
  if optical and not 0<=gap<=.15*size:raise ValueError('punctuation_gap须在0至0.15em之间')
  # 悬挂标点：允许最多0.6个字出界；严格盒宽用于换行，不截掉字。
  for ch,color in chars:
-  if ch=='\n':lines.append((line,width));line=[];width=0;previous_ink=None;previous_char=None;continue
+  if ch=='\n':lines.append((line,width));soft.append(False);line=[];width=0;previous_ink=None;previous_char=None;continue
   cf=f;shift=0
   # 可选：毛笔等标题里的英文字母和数字换成黑体（latin_font），默认 0.92 倍字号、共用基线。
-  if e.get('latin_font') and ch in LATIN_CHARS:cf=font(e['latin_font'],size*e.get('latin_scale',.92),cfg)
+  if latin_key and ch in LATIN_CHARS:cf=font(latin_key,size*latin_scale,cfg)
   if not ch.isspace() and missing_glyph(cf,ch):
    cf=font(e.get('fallback_font','sans-bold'),size,cfg)
    if missing_glyph(cf,ch):raise ValueError('主字体与补字字体均缺字：'+ch)
    fallbacks.add(ch)
+  if typo and ch in '—…【】·':
+   sp=None
+   if ch in '—…':sp='dash' if ch=='—' else 'dots';cw=(TYPO['dash_adv'] if ch=='—' else 1)*size+spacing
+   else:
+    cw=(TYPO['bracket'] if ch in '【】' else TYPO['middot'])*size+spacing;bb=ink_box(cf,ch,stroke)
+    if not bb:shift=0
+    elif ch=='【':shift=cw-spacing-TYPO['bracket_margin']*size-bb[2]
+    elif ch=='】':shift=TYPO['bracket_margin']*size-bb[0]
+    else:shift=(cw-spacing)/2-(bb[0]+bb[2])/2
+   if width+cw>w and line and (ch not in CLOSING_PUNCTUATION or width+cw-w>.6*size) and ch!='】':   # 最多悬挂 0.6 字
+    lines.append((line,width));soft.append(True);line=[];width=0
+   line.append((ch,color,cw,cf,shift,sp));width+=cw;compact[ch]=round(cw,2);previous_ink=None;previous_char=None;continue
   cw=cf.getlength(ch)+spacing
   move=e.get('punctuation_shift',0)
   # 字形整体向前移动，同时收回推进宽，避免把空隙留给下一字；共用原基线。
@@ -205,13 +292,38 @@ def draw_text(canvas,e,cfg,W,H,audit):
     else:advance+=offset
    return advance,offset
   if optical:cw,shift=optical_position(width,previous_ink,previous_char)
+  if width+cw>w and line and e.get('justify') and not optical:
+   # 标点挤压：行内全角标点最多压到半宽，先吸收超出的量，放得下就不换行
+   room=[(j,g[2]-spacing-size*.5) for j,g in enumerate(line) if g[0] in SQUEEZE and g[2]-spacing>size*.55]
+   need=width+cw-w;total=sum(r for _,r in room)
+   if room and total>=need:
+    for j,r in room:
+     cut=r*need/total;g=line[j];line[j]=(g[0],g[1],g[2]-cut,g[3],g[4]-(cut if g[0] in SQUEEZE_OPEN else 0),g[5])
+    width-=need
   if width+cw>w and line and ch not in CLOSING_PUNCTUATION:
-   lines.append((line,width));line=[];width=0;previous_ink=None;previous_char=None
+   lines.append((line,width));soft.append(True);line=[];width=0;previous_ink=None;previous_char=None
    if optical:cw,shift=optical_position(width,None,None)
   if optical and ch in PUNCTUATION:compact[ch]=round(cw,2)
-  line.append((ch,color,cw,cf,shift));width+=cw
+  line.append((ch,color,cw,cf,shift,None));width+=cw
   previous_ink=width-cw+shift+bounds[2] if bounds else None;previous_char=ch if bounds else None
- if line:lines.append((line,width))
+ if line:lines.append((line,width));soft.append(False)
+ if e.get('justify'):
+  # 两端对齐：段末行不动；含空格的行只拉宽空格，否则把余量均分到字间（相邻两个拉丁字符之间不加）。
+  extra_soft=set(e.get('soft_breaks',[]))
+  for i,(row,rw) in enumerate(lines[:-1]):
+   if not (soft[i] or i in extra_soft):continue
+   n=len(row)
+   while n and row[n-1][0]==' ':n-=1
+   content=row[:n];rw_c=sum(g[2] for g in content);extra=w-rw_c
+   if n<2 or extra<=0:continue
+   inner=[j for j in range(1,n-1) if content[j][0]==' ']
+   pair_ok=lambda a,b:not (a in LATIN_CHARS and b in LATIN_CHARS) and not (optical and (a in PUNCTUATION or b in PUNCTUATION)) and not (a==b and a in '—…')
+   slots=[j for j in range(n-1) if pair_ok(content[j][0],content[j+1][0])]   # 标点两侧不拉，守住标点间距
+   if inner and extra/len(inner)<=TYPO['justify_space_max']*size:slots=inner      # 空格拉得开就只拉空格
+   if not slots or extra/len(slots)>TYPO['justify_max']*size:continue          # 要拉太多就不拉（留参差，别出现大窟窿）
+   add=extra/len(slots);row=list(content)
+   for j in slots:g=row[j];row[j]=(g[0],g[1],g[2]+add,g[3],g[4],g[5])
+   lines[i]=(row,rw_c+extra)
  used=len(lines)*lineheight
  if used>h+1:raise ValueError(f"文字溢出 {e['text'][:25]}: {used:.0f}>{h:.0f}px；分段/增高框，不自动缩字号")
  d=ImageDraw.Draw(canvas);ink_bounds=[];glyphs=[]
@@ -223,9 +335,12 @@ def draw_text(canvas,e,cfg,W,H,audit):
   # 所有字形共用字体基线，不能按各字墨迹顶端对齐（lt会抬高标点）。
   ascent,descent=f.getmetrics();baseline=yy+ascent
   pen=xx
-  for ch,color,cw,cf,shift in row:
-   bounds=ink_box(cf,ch,e.get('stroke',0))
-   if bounds:
+  for ch,color,cw,cf,shift,sp in row:
+   bounds=ink_box(cf,ch,e.get('stroke',0)) if not sp else None
+   if sp:
+    positioned=draw_special(None,sp,pen,baseline,cw,size,f,color,stroke)
+    ink_bounds.append(positioned);glyphs.append({'char':ch,'line':li,'ink_bounds':positioned,'fill':color})
+   elif bounds:
     positioned=[pen+shift+bounds[0],baseline+bounds[1],pen+shift+bounds[2],baseline+bounds[3]]
     ink_bounds.append(positioned);glyphs.append({'char':ch,'line':li,'ink_bounds':positioned,'fill':color})
    else:glyphs.append({'char':ch,'line':li,'ink_bounds':None,'fill':color})
@@ -236,26 +351,33 @@ def draw_text(canvas,e,cfg,W,H,audit):
    pad=round(size*.45);rh=max(round(lineheight),ascent+descent)+8
    row_layer=Image.new('RGBA',(math.ceil(rw)+pad*2+12,rh))
    rd=ImageDraw.Draw(row_layer);rx=pad
-   for ch,color,cw,cf,shift in row:
+   for ch,color,cw,cf,shift,sp in row:
+    if sp:
+     if e.get('shadow'):draw_special(rd,sp,rx+4,ascent+4,cw,size,f,'#000000',stroke)
+     draw_special(rd,sp,rx,ascent,cw,size,f,color,stroke);rx+=cw;continue
     if e.get('shadow'):rd.text((rx+shift+4,ascent+4),ch,font=cf,fill='#000000',anchor='ls')
     rd.text((rx+shift,ascent),ch,font=cf,fill=color,anchor='ls',stroke_width=e.get('stroke',0),stroke_fill=e.get('stroke_fill',color));rx+=cw
    k=math.tan(math.radians(angle))
    row_layer=row_layer.transform(row_layer.size,Image.Transform.AFFINE,(1,k,-k*ascent,0,1,0),Image.Resampling.BICUBIC)
    canvas.alpha_composite(row_layer,(round(xx-pad),round(yy)))
   else:
-   for ch,color,cw,cf,shift in row:
+   for ch,color,cw,cf,shift,sp in row:
+    if sp:
+     if e.get('shadow'):draw_special(d,sp,xx+4,baseline+4,cw,size,f,'#000000',stroke)
+     draw_special(d,sp,xx,baseline,cw,size,f,color,stroke);xx+=cw;continue
     if e.get('shadow'):d.text((xx+shift+4,baseline+4),ch,font=cf,fill='#000000',anchor='ls')
     d.text((xx+shift,baseline),ch,font=cf,fill=color,anchor='ls',stroke_width=e.get('stroke',0),stroke_fill=e.get('stroke_fill',color));xx+=cw
  bounds=[round(min(b[0] for b in ink_bounds),2),round(min(b[1] for b in ink_bounds),2),round(max(b[2] for b in ink_bounds),2),round(max(b[3] for b in ink_bounds),2)] if ink_bounds else None
  gaps=punctuation_gaps(glyphs,size)
  if optical:
   violations=[v for v in gaps if v['gap_em']>.2+1e-6 or v['gap_em']<-.001]
+  if typo:violations=[v for v in violations if not set(v['pair'])&set('—…【】·')]   # 排字规则自带间距
   if violations:raise ValueError('毛笔标点实际墨迹间距超限：'+str(violations))
  audit.append({'kind':'text','box':e['box'],'lines':len(lines),'used_height':round(used),'capacity_height':round(h),'text':e['text'],
   'font':e.get('font','body'),'font_file':font_info,'size':e.get('size',60),'stroke_width':e.get('stroke',0),
   'stroke_fill':e.get('stroke_fill'),'soft_shadow':e.get('soft_shadow'),'ink_bounds':bounds,
   'fallback_characters':sorted(fallbacks),'compact_punctuation_advances':compact,
-  'tight_punctuation':e.get('tight_punctuation',False),'punctuation_gaps':gaps,'glyphs':glyphs,'latin_font':e.get('latin_font')})
+  'tight_punctuation':e.get('tight_punctuation',False),'punctuation_gaps':gaps,'glyphs':glyphs,'latin_font':latin_key,'typo':typo,'justify':bool(e.get('justify'))})
 
 def punctuation_gaps(glyphs,size):
  """按同一行相邻可见字形的真实墨迹边界测空白；空格与换行不跨越。"""
@@ -490,59 +612,64 @@ def render(script,out,width=1440,assets_root=None):
   if bookmark and p.get('bookmark_text',True):
    x=.08 if bookmark!='right' else .80
    elements.append(dict(kind='text',text=pcfg['series_name']+'\n— vol.'+str(p.get('volume','01'))+' —',box=[max(0,x-.065),.115,.30,.08],size=34,align='center'))
-  # 先绘制全部图片/装饰，再绘制文字，文字永远位于图片上层。
-  for e in elements:
-   kind=e['kind']
-   if kind in ['image','dark_backdrop']:
-    x,y,w,h=e['box']
-    if kind=='dark_backdrop':
-     pic,details=dark_backdrop(e,script.parent,W,H,pcfg,transform_audit);component_audit.append(details)
-    else:pic=processed_image(e,script.parent,(round(w*W),round(h*H)),pcfg,transform_audit)
-    pos=(round(x*W),round(y*H))
-    if e.get('soft_shadow'):
-     setting=e['soft_shadow'];m=Image.new('L',(W,H));m.paste(pic.getchannel('A'),pos)
-     shade=Image.new('RGBA',(W,H),setting.get('color','#000000'))
-     shade.putalpha(m.filter(ImageFilter.GaussianBlur(setting.get('blur',12)*W/1440)).point(lambda a:round(a*setting.get('opacity',.5))))
-     im.alpha_composite(shade,tuple(round(v*W/1440) for v in setting.get('offset',[8,10])))
-    im.alpha_composite(pic,pos)
-    # 按实际不透明像素的并集计面积；透明留白、重复叠放和低透明氛围层不能凑面积。
-    visible=e.get('opacity',1)>.25 and e.get('coverage',True)
-    mask=Image.new('L',(W,H))
-    if visible:
-     mask.paste(pic.getchannel('A').point(lambda a:255 if a>=128 else 0),pos)
-     coverage=ImageChops.lighter(coverage,mask)
-    image_audit.append({'path':e['path'],'source_id':e.get('source_id',e['path']),
-                        'visible':visible,'opaque_pixels':mask.histogram()[255],'opaque_bounds':mask.getbbox(),
-                        'kind':kind,'soft_shadow':e.get('soft_shadow')})
-    source=Image.open(asset_path(script.parent,e['path']))
-    is_cutout=e.get('mask') or e.get('role')=='foreground' or (source.mode=='RGBA' and source.getchannel('A').getextrema()[0]<255)
-    if is_cutout and e.get('role')!='background' and e.get('opacity',1)>.25:
-     mask=Image.new('L',(W,H));mask.paste(pic.getchannel('A').point(lambda a:255 if a>=128 else 0),pos)
-     foreground.append((e['path'],mask))
-   elif kind=='disc_portrait':
-    layer,mask,visible,record=disc_portrait(e,script.parent,W,H,pcfg)
-    im.alpha_composite(layer);coverage=ImageChops.lighter(coverage,visible)
-    foreground.append((e['cutout_path'],mask));component_audit.append(record);transform_audit.append(record['transform'])
-    image_audit.append({'path':e['cutout_path'],'source_id':e['source_id'],'visible':True,'opaque_pixels':mask.histogram()[255]})
-   elif kind=='arrow':arrow(im,e,W,H,pcfg)
-   elif kind in ['rect','ellipse']:
-    x,y,w,h=e['box'];drawer=ImageDraw.Draw(im)
-    method=drawer.ellipse if kind=='ellipse' else drawer.rectangle
-    method((x*W,y*H,(x+w)*W,(y+h)*H),fill=e.get('fill'),outline=e.get('outline'),width=round(e.get('width',4)*W/1440))
-  if bookmark:
-   x=.08 if bookmark!='right' else .80;dd=ImageDraw.Draw(im)
-   dd.polygon([(x*W,0),((x+.08)*W,0),((x+.08)*W,.075*H),((x+.04)*W,.1*H),(x*W,.075*H)],fill=pcfg['accent'])
-  collisions=[]
-  for e in elements:
-   if e['kind'] not in ['text','caption']:continue
-   x,y,w,h=e['box'];box=(round(x*W),round(y*H),round((x+w)*W),round((y+h)*H));area=(box[2]-box[0])*(box[3]-box[1])
-   for path,mask in foreground:
-    if e.get('text_role')=='label':continue   # 人名标签本来就贴在图上
-    overlap=mask.crop(box).histogram()[255]/max(1,area)
-    collisions.append({'text':e['text'][:30],'image':path,'opaque_overlap':round(overlap,6)})
-    if overlap>.03:raise ValueError(f"碰撞：文本框与抠图不透明区域重叠{overlap:.1%}>3%：{e['text'][:30]} / {path}")
-   if e['kind']=='caption':e={'size':28,'font':'sans','spacing':0,'lineheight':36,'bg':'#000000',**e}
-   draw_text(im,e,pcfg,W,H,audit)
+  # 先绘制全部图片/装饰，再绘制文字，文字位于图片上层。例外：标了 above_text 的图片（page(layer_order='text-under-images')）
+  # 在文字之后画，顺序变成「底色 → 投影 → 文字 → 图片」，图片可以压住文字边缘。没标的页面与原来完全一样。
+  late=[e for e in elements if e.get('above_text') and e['kind'] in ('image','dark_backdrop')]
+  for phase in (0,1):
+   for e in (elements if phase==0 else late):
+    if phase==0 and any(e is v for v in late):continue
+    kind=e['kind']
+    if kind in ['image','dark_backdrop']:
+     x,y,w,h=e['box']
+     if kind=='dark_backdrop':
+      pic,details=dark_backdrop(e,script.parent,W,H,pcfg,transform_audit);component_audit.append(details)
+     else:pic=processed_image(e,script.parent,(round(w*W),round(h*H)),pcfg,transform_audit)
+     pos=(round(x*W),round(y*H))
+     if e.get('soft_shadow'):
+      setting=e['soft_shadow'];m=Image.new('L',(W,H));m.paste(pic.getchannel('A'),pos)
+      shade=Image.new('RGBA',(W,H),setting.get('color','#000000'))
+      shade.putalpha(m.filter(ImageFilter.GaussianBlur(setting.get('blur',12)*W/1440)).point(lambda a:round(a*setting.get('opacity',.5))))
+      im.alpha_composite(shade,tuple(round(v*W/1440) for v in setting.get('offset',[8,10])))
+     im.alpha_composite(pic,pos)
+     # 按实际不透明像素的并集计面积；透明留白、重复叠放和低透明氛围层不能凑面积。
+     visible=e.get('opacity',1)>.25 and e.get('coverage',True)
+     mask=Image.new('L',(W,H))
+     if visible:
+      mask.paste(pic.getchannel('A').point(lambda a:255 if a>=128 else 0),pos)
+      coverage=ImageChops.lighter(coverage,mask)
+     image_audit.append({'path':e['path'],'source_id':e.get('source_id',e['path']),
+                         'visible':visible,'opaque_pixels':mask.histogram()[255],'opaque_bounds':mask.getbbox(),
+                         'kind':kind,'soft_shadow':e.get('soft_shadow')})
+     source=Image.open(asset_path(script.parent,e['path']))
+     is_cutout=e.get('mask') or e.get('role')=='foreground' or (source.mode=='RGBA' and source.getchannel('A').getextrema()[0]<255)
+     if is_cutout and e.get('role')!='background' and e.get('opacity',1)>.25:
+      mask=Image.new('L',(W,H));mask.paste(pic.getchannel('A').point(lambda a:255 if a>=128 else 0),pos)
+      foreground.append((e['path'],mask))
+    elif kind=='disc_portrait':
+     layer,mask,visible,record=disc_portrait(e,script.parent,W,H,pcfg)
+     im.alpha_composite(layer);coverage=ImageChops.lighter(coverage,visible)
+     foreground.append((e['cutout_path'],mask));component_audit.append(record);transform_audit.append(record['transform'])
+     image_audit.append({'path':e['cutout_path'],'source_id':e['source_id'],'visible':True,'opaque_pixels':mask.histogram()[255]})
+    elif kind=='arrow':arrow(im,e,W,H,pcfg)
+    elif kind in ['rect','ellipse']:
+     x,y,w,h=e['box'];drawer=ImageDraw.Draw(im)
+     method=drawer.ellipse if kind=='ellipse' else drawer.rectangle
+     method((x*W,y*H,(x+w)*W,(y+h)*H),fill=e.get('fill'),outline=e.get('outline'),width=round(e.get('width',4)*W/1440))
+   if phase:break
+   if bookmark:
+    x=.08 if bookmark!='right' else .80;dd=ImageDraw.Draw(im)
+    dd.polygon([(x*W,0),((x+.08)*W,0),((x+.08)*W,.075*H),((x+.04)*W,.1*H),(x*W,.075*H)],fill=pcfg['accent'])
+   collisions=[]
+   for e in elements:
+    if e['kind'] not in ['text','caption']:continue
+    x,y,w,h=e['box'];box=(round(x*W),round(y*H),round((x+w)*W),round((y+h)*H));area=(box[2]-box[0])*(box[3]-box[1])
+    for path,mask in foreground:
+     if e.get('text_role')=='label':continue   # 人名标签本来就贴在图上
+     overlap=mask.crop(box).histogram()[255]/max(1,area)
+     collisions.append({'text':e['text'][:30],'image':path,'opaque_overlap':round(overlap,6)})
+     if overlap>.03:raise ValueError(f"碰撞：文本框与抠图不透明区域重叠{overlap:.1%}>3%：{e['text'][:30]} / {path}")
+    if e['kind']=='caption':e={'size':28,'font':'sans','spacing':0,'lineheight':36,'bg':'#000000',**e}
+    draw_text(im,e,pcfg,W,H,audit)
   for e in elements:
    if e['kind'] in ['hand_circle','hand_underline']:component_audit.append(hand_mark(im,e,audit,W,H))
   if p.get('border'):
