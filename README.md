@@ -134,6 +134,8 @@ S.write_script('题目', '制作.py')   # 生成 页面脚本.json
 python3 scripts/render.py 页面脚本.json --out pages --assets-root .
 python3 scripts/check_all.py 页面脚本.json --pages pages --assets-root .   # errors 必须为零
 python3 scripts/package.py --note . --pages pages --out 交付 --assets-root .
+# 可选严格视觉（默认关闭）：留白超标/连续同骨架时拒绝交付；目检后可 --accept-visual "理由" 放行并写入清单
+python3 scripts/package.py --note . --pages pages --out 交付 --assets-root . --strict-visual
 ```
 
 ## 目录结构
