@@ -35,7 +35,7 @@ def red_lines(n,p,r):
  return out
 
 
-def check_note(script,pages,report=None,assets_root=None,products=False):
+def check_note(script,pages,report=None,assets_root=None,products=False,strict_visual=False):
  script=Path(script).resolve();pages=Path(pages).resolve();report=Path(report or pages/'render-report.json')
  set_assets_root(assets_root);data=json.loads(script.read_text(encoding='utf-8'));reports=json.loads(report.read_text(encoding='utf-8'))
  if products:
@@ -84,10 +84,14 @@ def check_note(script,pages,report=None,assets_root=None,products=False):
  advisories=[]
  # 风格指标（色彩丰富度、强调色占比、交替节奏、留白配额等）只作参考：为凑指标改版式，反而会把页面做坏。
  ADVISORY={'richness','alternation','whitespace','variation','color_area'}
+ # 严格视觉（默认关闭）只把留白均值/空带和「与前页骨架相同」升级为交付阻断；色彩丰富度、原图数量等依赖体裁，永远只是建议。
+ # 阻断不是让执行者凑指标：确认页面目检没问题时，用 package.py --accept-visual "理由" 放行并留档。
+ strict_visual=bool(strict_visual or data.get('config',{}).get('visual_gate'));blockers=[]
  def run(name,fn):
   target=advisories if name in ADVISORY else errors
   try:
    result=fn();checks[name]=result;target.extend(result.get('errors',[]))
+   if strict_visual:blockers.extend(m for m in result.get('errors',[]) if visual_blocking(name,m))
   except (OSError,ValueError,KeyError,StopIteration,TypeError) as exc:
    checks[name]={'passed':False,'errors':[str(exc)]};target.append(f'{name}: {exc}')
  run('geometry',lambda:geometry_rules(data,reports,script,pages))
@@ -128,7 +132,7 @@ def check_note(script,pages,report=None,assets_root=None,products=False):
    if not ok:errors.append('清单素材SHA不一致：'+asset['path'])
   checks['asset_manifest']={'passed':all(v['sha256_matches'] for v in checked),'files':checked}
  errors=list(dict.fromkeys(errors))
- return {'advisories':list(dict.fromkeys(advisories)),'visual_acceptance':visual_acceptance(list(dict.fromkeys(advisories))),'passed':not errors,'scope':'sample-technical' if sample else 'production-technical','production_ready':False if sample else not errors,'manual_review_required':['历史事实与来源原文','图片使用许可','原尺寸目检','人工盲测'],'pages':len(data['pages']),'exceptions':exceptions,'checks':checks,'errors':errors}
+ return {'advisories':list(dict.fromkeys(advisories)),'visual_acceptance':visual_acceptance(list(dict.fromkeys(advisories))),'strict_visual':strict_visual,'visual_blockers':list(dict.fromkeys(blockers)),'passed':not errors,'scope':'sample-technical' if sample else 'production-technical','production_ready':False if sample else not errors,'manual_review_required':['历史事实与来源原文','图片使用许可','原尺寸目检','人工盲测'],'pages':len(data['pages']),'exceptions':exceptions,'checks':checks,'errors':errors}
 
 
 def load_manifest(path):
@@ -140,17 +144,21 @@ def load_manifest(path):
  return data['assets']
 
 
+def visual_blocking(name,message):
+ return name=='whitespace' or (name=='alternation' and '骨架相同' in message)
+
+
 def visual_acceptance(advisories):
  n=len(advisories)
  return f'未验收，存在 {n} 条建议项；技术通过不代表视觉质量通过，须人工逐页看原尺寸图' if n else '未验收；机器不判断视觉质量，须人工逐页看原尺寸图'
 
 
 def main():
- ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('script',type=Path);g=ap.add_mutually_exclusive_group(required=True);g.add_argument('--pages',type=Path);g.add_argument('--products',type=Path);ap.add_argument('--report',type=Path);ap.add_argument('--assets-root',type=Path);ap.add_argument('--out',type=Path);a=ap.parse_args()
- try:r=check_note(a.script,a.pages or a.products,a.report or (a.script.parent/'渲染基准.json' if a.products else None),a.assets_root,bool(a.products))
+ ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('script',type=Path);g=ap.add_mutually_exclusive_group(required=True);g.add_argument('--pages',type=Path);g.add_argument('--products',type=Path);ap.add_argument('--report',type=Path);ap.add_argument('--assets-root',type=Path);ap.add_argument('--out',type=Path);ap.add_argument('--strict-visual',action='store_true',help='留白/连续同骨架升级为交付阻断');a=ap.parse_args()
+ try:r=check_note(a.script,a.pages or a.products,a.report or (a.script.parent/'渲染基准.json' if a.products else None),a.assets_root,bool(a.products),a.strict_visual)
  except (OSError,ValueError,KeyError) as exc:r={'passed':False,'errors':[str(exc)]}
  if a.out:a.out.parent.mkdir(parents=True,exist_ok=True);a.out.write_text(json.dumps(r,ensure_ascii=False,indent=2),encoding='utf-8')
- print(json.dumps({'passed':r['passed'],'scope':r.get('scope'),'errors':r['errors'],'advisories':r.get('advisories',[]),'visual_acceptance':r.get('visual_acceptance')},ensure_ascii=False,indent=2))
+ print(json.dumps({'passed':r['passed'],'scope':r.get('scope'),'errors':r['errors'],'advisories':r.get('advisories',[]),'visual_acceptance':r.get('visual_acceptance'),'visual_blockers':r.get('visual_blockers',[])},ensure_ascii=False,indent=2))
  if r.get('visual_acceptance'):print('视觉验收：'+r['visual_acceptance'],file=sys.stderr)
- return 0 if r['passed'] else 1
+ return 0 if r['passed'] and not r.get('visual_blockers') else 1
 if __name__=='__main__':raise SystemExit(main())
