@@ -10,6 +10,7 @@
 [![Codex Skill](https://img.shields.io/badge/Codex-Skill-111111?style=flat-square)](SKILL.md)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)](requirements.txt)
 [![页面 1440×1920](https://img.shields.io/badge/页面-1440×1920-00E5FF?style=flat-square)](#版式一览)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 [![字体 SIL OFL 1.1](https://img.shields.io/badge/字体-SIL_OFL_1.1-4CAF50?style=flat-square)](assets/fonts/README.md)
 
 [看样板](#样板) · [能做什么](#能做什么) · [安装](#安装) · [使用](#使用) · [目录结构](#目录结构) · [常见问题](#常见问题)
@@ -129,6 +130,7 @@ python3 scripts/package.py --note . --pages pages --out 交付 --assets-root .
 cy-carousel/
 ├── SKILL.md              AI 读取的主说明：红线、版式、流程、常见坑
 ├── README.md
+├── LICENSE             MIT（字体除外）
 ├── requirements.txt
 ├── scripts/
 │   ├── 手排.py            手排工具（AI 线的入口）
@@ -181,6 +183,8 @@ cy-carousel/
 不推荐。那套出来的页面不如手排，`build.py` 只作为渲染和断行的底层库。
 </details>
 
-## 字体与许可
+## 许可
 
-仓库自带的 Noto Serif SC、Noto Sans SC、马善政、霞鹜文楷 Medium 都是 SIL Open Font License 1.1，许可证和 SHA256 见 [assets/fonts/](assets/fonts/README.md)。示例页面里的素材各有出处和许可，记录在每篇成品的置顶评论里。
+代码和文档以 [MIT 许可证](LICENSE) 发布。
+
+字体不在 MIT 范围内：仓库自带的 Noto Serif SC、Noto Sans SC、马善政、霞鹜文楷 Medium 都是 SIL Open Font License 1.1，许可证和 SHA256 见 [assets/fonts/](assets/fonts/README.md)。示例页面里的素材各有出处和许可，记录在每篇成品的置顶评论里。
