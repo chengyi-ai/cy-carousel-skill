@@ -8,10 +8,10 @@ import tempfile
 def cell_faces(source,source_name=None):
  import sys
  if sys.platform!='darwin':raise ValueError('非macOS请提供已确认face_boxes；无人脸须人工确认后传空列表')
- with tempfile.TemporaryDirectory(prefix='lishi-vision-') as td:
+ with tempfile.TemporaryDirectory(prefix='cy-vision-') as td:
   folder=Path(td);picture=folder/'source.png';source.save(picture)
   inputs=folder/'input.json';output=folder/'faces.json';inputs.write_text(json.dumps([str(picture)]))
-  cache=Path(tempfile.gettempdir())/'lishi-vision-module-cache';cache.mkdir(exist_ok=True)
+  cache=Path(tempfile.gettempdir())/'cy-vision-module-cache';cache.mkdir(exist_ok=True)
   run=subprocess.run(['swift','-module-cache-path',str(cache),str(Path(__file__).with_name('检测人脸.swift')),str(inputs),str(output)],capture_output=True,text=True,timeout=60)
   if run.returncode or not output.exists():raise ValueError('Vision不可用，不能跳过验脸；请提供已核实框：'+run.stderr[-600:])
   record=json.loads(output.read_text())[0]

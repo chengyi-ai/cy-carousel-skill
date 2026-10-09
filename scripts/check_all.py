@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""统一历史图文检查：不修改输入；技术验收与人工事实/视觉验收分开。"""
+"""统一图文检查：不修改输入；技术验收与人工事实/视觉验收分开。"""
 import argparse,json,hashlib,re
 from pathlib import Path
 from PIL import Image,ImageColor

@@ -682,7 +682,7 @@ def copy_checks(content):
         out.append('文案：底色文字超过5处。它只用来突出原话、关键数字或证据边界，多了就不醒目')
     narr = re.sub(r'「[^」]*」', '', alltext)          # 引号里是别人的原话，不算作者的「我」
     if narr.count('我') - narr.count('我们') > 2:
-        out.append('文案：全篇「我」超过2次。历史图文里「我」只用在一两处判断上')
+        out.append('文案：全篇「我」超过2次。图文里「我」只用在一两处判断上')
     if len(pages) > 2:
         head = keywords(pages[0].get('line1', '') + pages[0].get('line2', '') + content.get('thesis', ''))
         last = pages[-1]

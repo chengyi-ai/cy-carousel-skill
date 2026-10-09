@@ -1,7 +1,7 @@
 """素材根目录由调用者提供；页面脚本及随包清单只存相对路径。"""
 from pathlib import Path
 import contextvars
-_root=contextvars.ContextVar('lishi_assets_root',default=None)
+_root=contextvars.ContextVar('assets_root',default=None)
 def set_assets_root(root=None):
     _root.set(Path(root).expanduser().resolve() if root is not None else None)
 def asset_path(base,value):
