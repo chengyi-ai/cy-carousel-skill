@@ -39,7 +39,7 @@ description: 制作 AI 科技类小红书图文轮播（封面＋10张内页，1
 4. **手排**：先出同字对比小样定正文字体；写 `制作.py`，`import 手排 as S`，`S.init(笔记目录)`；逐页用 `Canvas().put()` 摆图和纸条，用 `headline/big/body/sticker/label` 写字，`page(..., backdrop=...)` 组页，最后 `S.write_script(题目, '制作.py')` 生成 `页面脚本.json`。完整写法见 `examples/03-聪明汉斯/制作.py`。
 5. **渲染**：`python3 scripts/render.py 页面脚本.json --out pages --assets-root .`；`S.preview('pages', '全套预览.jpg')` 出缩略图，逐页看：文字出界、压字、红圈标错、纸条带半截字、大块空白。
 6. **对照**（有参照页时）：`python3 scripts/对照.py 参照.jpg pages/p03.png` 出左右并排图（同高）和文字行偏差表（四边、字高，1440 宽 px 与 %，超 1% 标红），按表调字号和位置再渲染。
-7. **检查**：`python3 scripts/check_all.py 页面脚本.json --pages pages --assets-root .`，`errors` 必须为零。可选严格视觉：加 `--strict-visual`（或页面脚本 `config.visual_gate: true`）后，留白超标和「与前页骨架相同」会列入 `visual_blockers` 并使退出码非零；色彩丰富度、原图数量等依赖体裁的建议项不参与。默认关闭。风格指标只作参考，别为凑指标改版式。
+7. **检查**：`python3 scripts/check_all.py 页面脚本.json --pages pages --assets-root .`，`errors` 必须为零。可选严格视觉：加 `--strict-visual`（或页面脚本 `config.visual_gate: true`）后，留白超标和「与前页骨架相同」会列入 `visual_blockers` 并使退出码非零；色彩丰富度、原图数量等依赖体裁的建议项不参与。仅适用于正式稿的暗色调；三页小样和浅色调不跑这两项，会在 `checks.strict_visual` 写明不适用并在终端提示，`visual_blockers` 为空不代表通过。留白/骨架检查自身出错时也计入阻断。默认关闭。风格指标只作参考，别为凑指标改版式。
 8. **给用户看**：全套预览、对照图、小样复制到会话工作目录，直接把图发给用户（用户看不到文件面板的预览）。
 9. **文稿**：标题 3 个（≤20 字）、正文、置顶评论（一手出处、几处说明、逐页配图出处）、`来源.md`。打包（`package.py`）要求笔记目录里有分别命名的非空 UTF-8 文件 `标题.txt`、`正文.txt`、`置顶评论.txt`、`来源.md`，合并成一份「帖子文案.txt」不行。`素材清单.json`（可选）顶层必须是对象：`{"assets":[{"path":"assets/a.png","sha256":"…"}]}`，写成数组会报错。`check_all` / `package` 的「技术通过」不等于视觉验收，输出里的 `visual_acceptance` 字段始终是「未验收」，advisory 建议项要人工逐页看原尺寸图后处理。
 10. **打包**：`python3 scripts/package.py --note . --pages pages --out 交付 --assets-root .`。严格视觉模式下加 `--strict-visual`，有阻断项会拒绝交付；逐页目检确认没问题后用 `--accept-visual "理由"` 放行，理由和被放行的阻断项写入 `交付清单.json` 的 `visual_accepted`。

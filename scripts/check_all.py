@@ -94,6 +94,11 @@ def check_note(script,pages,report=None,assets_root=None,products=False,strict_v
    if strict_visual:blockers.extend(m for m in result.get('errors',[]) if visual_blocking(name,m))
   except (OSError,ValueError,KeyError,StopIteration,TypeError) as exc:
    checks[name]={'passed':False,'errors':[str(exc)]};target.append(f'{name}: {exc}')
+   # 严格模式下，留白/骨架检查自己出错不能当作「无阻断」放行
+   if strict_visual and name in VISUAL_GATE_CHECKS:blockers.append(f'{name}检查未能运行：{exc}')
+ def not_applicable(reason):
+  checks['strict_visual']={'applicable':False,'reason':reason+'，严格视觉检查不适用，visual_blockers 恒为空不代表通过'}
+  print('严格视觉不适用：'+checks['strict_visual']['reason'],file=sys.stderr)
  run('geometry',lambda:geometry_rules(data,reports,script,pages))
  run('background',lambda:background_rules(data,reports,script,pages))
  run('tone',lambda:tone_rules(data,reports,script,pages,checks.get('background')))
@@ -101,10 +106,12 @@ def check_note(script,pages,report=None,assets_root=None,products=False,strict_v
  run('watermark',lambda:watermark_rules(data))
  if sample:
   run('color_area',lambda:color_hierarchy_rules(data,reports,script,pages))
+  if strict_visual:not_applicable('三页小样不跑留白/骨架检查')
   checks['production_quotas']={'applicable':False,'reason':'三页小样只验流程；正式稿8–12内页/15图源/全篇丰富度配额未验收'}
  else:
   run('richness',lambda:richness_rules(data,reports,script,pages))
   if normalize_tone(data.get('tone',data.get('config',{}).get('tone','暗')))=='浅':
+   if strict_visual:not_applicable('浅色调不跑留白/骨架检查')
    run('light_editorial',lambda:light_editorial_rules(data,reports,script,pages))
    run('color_area',lambda:color_hierarchy_rules(data,reports,script,pages))
   else:
@@ -142,6 +149,9 @@ def load_manifest(path):
  for i,a in enumerate(data['assets']):
   if not isinstance(a,dict) or not all(isinstance(a.get(k),str) for k in ('path','sha256')):raise ValueError(f'素材清单.json 的 assets[{i}] 必须是含 path 和 sha256 的对象，例如 {example}')
  return data['assets']
+
+
+VISUAL_GATE_CHECKS=('whitespace','alternation')
 
 
 def visual_blocking(name,message):
