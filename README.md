@@ -4,7 +4,7 @@
 
 # cy-carousel · AI 科技图文轮播 Skill
 
-**给一个 AI 选题，交回一篇能直接发小红书的图文笔记。**
+**给一个 AI 选题，交回一整套能直接发布的图文轮播。**
 
 [![Claude Code Skill](https://img.shields.io/badge/Claude_Code-Skill-D97757?style=flat-square)](SKILL.md)
 [![Codex Skill](https://img.shields.io/badge/Codex-Skill-111111?style=flat-square)](SKILL.md)
@@ -184,7 +184,7 @@ cy-carousel/
 </details>
 
 <details>
-<summary><b>会自动发到小红书吗？</b></summary>
+<summary><b>会自动发布吗？</b></summary>
 
 不会。脚本只出文件，发布由你自己来。
 </details>
