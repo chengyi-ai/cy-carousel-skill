@@ -269,13 +269,13 @@ def regression():
  with tempfile.TemporaryDirectory() as td:
   root=Path(td);im=Image.new('RGBA',(100,100),(255,0,0,255));im.putpixel((0,0),(0,0,0,0));im.save(root/'person.png')
   page={'layout':'story','watermark':False,'elements':[{'kind':'text','text':'甲，乙。——丙…丁·戊','box':[.05,.05,.8,.1],'size':60},{'kind':'image','path':'person.png','source_id':'original-person','box':[.05,.05,.8,.8],'role':'foreground','fit':'cover'}]}
-  script=root/'test.json';script.write_text(json.dumps({'pages':[page]}))
+  script=root/'test.json';script.write_text(json.dumps({'pages':[page]}),encoding='utf-8')
   try:render(script,root/'bad')
   except ValueError as err:assert '碰撞' in str(err)
   else:raise AssertionError('碰撞未拒绝')
   print('PASS: >3%抠图碰撞被拒绝')
   page['elements'][1]['role']='background';page['elements'].append({**page['elements'][1],'crop':[0,0,.9,.9]})
-  script.write_text(json.dumps({'pages':[page]}));reports=render(script,root/'ok');out=Image.open(root/'ok/p01.png')
+  script.write_text(json.dumps({'pages':[page]}),encoding='utf-8');reports=render(script,root/'ok');out=Image.open(root/'ok/p01.png')
   assert sum(min(px)>230 for px in out.crop((72,96,500,230)).getdata())>100
   assert .639<reports[0]['image_area_ratio']<.641
   print('PASS: 文字在图片上层；图片重叠按像素并集计面积')
@@ -291,5 +291,5 @@ if __name__=='__main__':
  else:
   from check_all import check_note
   r=check_note(a.script,a.pages or a.report.parent,a.report,a.assets_root)
-  if a.out:a.out.write_text(json.dumps(r,ensure_ascii=False,indent=2))
+  if a.out:a.out.write_text(json.dumps(r,ensure_ascii=False,indent=2),encoding='utf-8')
   print(json.dumps(r,ensure_ascii=False,indent=2));raise SystemExit(0 if r['passed'] else 1)

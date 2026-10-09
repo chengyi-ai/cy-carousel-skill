@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """统一图文检查：不修改输入；技术验收与人工事实/视觉验收分开。"""
-import argparse,json,hashlib,re
+import argparse,json,hashlib,re,sys
 from pathlib import Path
 from PIL import Image,ImageColor
 from io_paths import set_assets_root,asset_path,check_relative_spec
@@ -37,7 +37,7 @@ def red_lines(n,p,r):
 
 def check_note(script,pages,report=None,assets_root=None,products=False):
  script=Path(script).resolve();pages=Path(pages).resolve();report=Path(report or pages/'render-report.json')
- set_assets_root(assets_root);data=json.loads(script.read_text());reports=json.loads(report.read_text())
+ set_assets_root(assets_root);data=json.loads(script.read_text(encoding='utf-8'));reports=json.loads(report.read_text(encoding='utf-8'))
  if products:
   for n,r in enumerate(reports,1):r['output_file']=str(pages/('01-封面.png' if n==1 else f'{n:02}.png'))
  errors=check_relative_spec(data);checks={};sample=data.get('mode')=='sample'
@@ -121,20 +121,36 @@ def check_note(script,pages,report=None,assets_root=None,products=False):
  manifest=script.parent/'素材清单.json'
  if manifest.exists():
   checked=[]
-  for asset in json.loads(manifest.read_text())['assets']:
+  for asset in load_manifest(manifest):
    source=asset_path(script.parent,asset['path'])
    if not source.is_file():errors.append('清单缺素材：'+asset['path']);continue
    sha=hashlib.sha256(source.read_bytes()).hexdigest();ok=sha==asset['sha256'];checked.append({'path':asset['path'],'sha256_matches':ok})
    if not ok:errors.append('清单素材SHA不一致：'+asset['path'])
   checks['asset_manifest']={'passed':all(v['sha256_matches'] for v in checked),'files':checked}
  errors=list(dict.fromkeys(errors))
- return {'advisories':list(dict.fromkeys(advisories)),'passed':not errors,'scope':'sample-technical' if sample else 'production-technical','production_ready':False if sample else not errors,'manual_review_required':['历史事实与来源原文','图片使用许可','原尺寸目检','人工盲测'],'pages':len(data['pages']),'exceptions':exceptions,'checks':checks,'errors':errors}
+ return {'advisories':list(dict.fromkeys(advisories)),'visual_acceptance':visual_acceptance(list(dict.fromkeys(advisories))),'passed':not errors,'scope':'sample-technical' if sample else 'production-technical','production_ready':False if sample else not errors,'manual_review_required':['历史事实与来源原文','图片使用许可','原尺寸目检','人工盲测'],'pages':len(data['pages']),'exceptions':exceptions,'checks':checks,'errors':errors}
+
+
+def load_manifest(path):
+ data=json.loads(Path(path).read_text(encoding='utf-8'))
+ example='{"assets":[{"path":"assets/a.png","sha256":"<64位十六进制>"}]}'
+ if not isinstance(data,dict) or not isinstance(data.get('assets'),list):raise ValueError(f'素材清单.json 顶层必须是含 assets 数组的对象，例如 {example}')
+ for i,a in enumerate(data['assets']):
+  if not isinstance(a,dict) or not all(isinstance(a.get(k),str) for k in ('path','sha256')):raise ValueError(f'素材清单.json 的 assets[{i}] 必须是含 path 和 sha256 的对象，例如 {example}')
+ return data['assets']
+
+
+def visual_acceptance(advisories):
+ n=len(advisories)
+ return f'未验收，存在 {n} 条建议项；技术通过不代表视觉质量通过，须人工逐页看原尺寸图' if n else '未验收；机器不判断视觉质量，须人工逐页看原尺寸图'
 
 
 def main():
  ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('script',type=Path);g=ap.add_mutually_exclusive_group(required=True);g.add_argument('--pages',type=Path);g.add_argument('--products',type=Path);ap.add_argument('--report',type=Path);ap.add_argument('--assets-root',type=Path);ap.add_argument('--out',type=Path);a=ap.parse_args()
  try:r=check_note(a.script,a.pages or a.products,a.report or (a.script.parent/'渲染基准.json' if a.products else None),a.assets_root,bool(a.products))
  except (OSError,ValueError,KeyError) as exc:r={'passed':False,'errors':[str(exc)]}
- if a.out:a.out.parent.mkdir(parents=True,exist_ok=True);a.out.write_text(json.dumps(r,ensure_ascii=False,indent=2))
- print(json.dumps({'passed':r['passed'],'scope':r.get('scope'),'errors':r['errors'],'advisories':r.get('advisories',[])},ensure_ascii=False,indent=2));return 0 if r['passed'] else 1
+ if a.out:a.out.parent.mkdir(parents=True,exist_ok=True);a.out.write_text(json.dumps(r,ensure_ascii=False,indent=2),encoding='utf-8')
+ print(json.dumps({'passed':r['passed'],'scope':r.get('scope'),'errors':r['errors'],'advisories':r.get('advisories',[]),'visual_acceptance':r.get('visual_acceptance')},ensure_ascii=False,indent=2))
+ if r.get('visual_acceptance'):print('视觉验收：'+r['visual_acceptance'],file=sys.stderr)
+ return 0 if r['passed'] else 1
 if __name__=='__main__':raise SystemExit(main())
