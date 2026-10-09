@@ -77,5 +77,35 @@ class RenderSmokeTests(unittest.TestCase):
         self.assertEqual(red_lines(1, self.page, self.reports[0]), [])
 
 
+class LatinFontFallbackTest(unittest.TestCase):
+    def setUp(self):
+        self.saved = {k: render.SYSTEM_FONTS[k] for k in ("serif-latin", "serif-latin-bold", "songti-sc")}
+        for k in self.saved:
+            render.SYSTEM_FONTS[k] = [("/nonexistent/font.ttf", None)]
+            render.FONTS.pop(k, None)
+        render.warn_latin_fallback.cache_clear()
+
+    def tearDown(self):
+        render.SYSTEM_FONTS.update(self.saved)
+        for k in self.saved:
+            render.FONTS.pop(k, None)
+
+    def test_latin_fonts_fall_back_with_warning(self):
+        for name in ("serif-latin", "serif-latin-bold"):
+            with self.assertWarns(RuntimeWarning):
+                face, info = render.resolved_font(name, 40, {})
+            self.assertTrue(info["fallback"])
+            self.assertEqual(info["source"], "latin-fallback")
+            self.assertGreater(face.getlength("Ab12"), 0)
+
+    def test_other_system_fonts_still_raise(self):
+        with self.assertRaises(FileNotFoundError):
+            render.font("songti-sc", 40, {})
+
+    def test_body_typo_renders(self):
+        with self.assertWarns(RuntimeWarning):
+            S.body("律师让 ChatGPT 找判例，共 6 个。", 0.06, 0.5, 0.88, typo=True)
+
+
 if __name__ == "__main__":
     unittest.main()
