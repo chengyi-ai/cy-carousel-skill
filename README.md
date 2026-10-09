@@ -4,7 +4,7 @@
 
 # cy-carousel · 图文轮播 Skill
 
-**给一个 AI 选题，交回一整套能直接发布的图文轮播。**
+**给一个选题，交回一整套能直接发布的图文轮播。**
 
 [![Claude Code Skill](https://img.shields.io/badge/Claude_Code-Skill-D97757?style=flat-square)](SKILL.md)
 [![Codex Skill](https://img.shields.io/badge/Codex-Skill-111111?style=flat-square)](SKILL.md)
