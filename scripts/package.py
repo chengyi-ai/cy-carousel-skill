@@ -34,4 +34,4 @@ def deliver(note,pages,out,report=None,assets_root=None,cover_c=None):
 
 if __name__=='__main__':
  ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--note',type=Path,required=True);ap.add_argument('--pages',type=Path,required=True);ap.add_argument('--out',type=Path,required=True);ap.add_argument('--report',type=Path);ap.add_argument('--assets-root',type=Path);ap.add_argument('--cover-c',type=Path);a=ap.parse_args()
- r=deliver(a.note,a.pages,a.out,a.report,a.assets_root,a.cover_c);print(json.dumps({'technical_passed':True,'visual_acceptance':result.get('visual_acceptance'),'advisories':result.get('advisories',[]),'scope':r['scope'],'images':len(r['files']),'published':False},ensure_ascii=False))
+ r=deliver(a.note,a.pages,a.out,a.report,a.assets_root,a.cover_c);print(json.dumps({'technical_passed':True,'visual_acceptance':r.get('visual_acceptance'),'advisories':r.get('advisories',[]),'scope':r['scope'],'images':len(r['files']),'published':False},ensure_ascii=False))
