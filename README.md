@@ -13,7 +13,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 [![字体 SIL OFL 1.1](https://img.shields.io/badge/字体-SIL_OFL_1.1-4CAF50?style=flat-square)](assets/fonts/README.md)
 
-[看样板](#样板) · [能做什么](#能做什么) · [安装](#安装) · [使用](#使用) · [目录结构](#目录结构) · [常见问题](#常见问题)
+[看样板](#样板) · [能做什么](#能做什么) · [安装](#安装) · [使用](#使用) · [目录结构](#目录结构) · [常见问题](#常见问题) · [反馈](#反馈)
 
 </div>
 
@@ -166,6 +166,8 @@ cy-carousel/
     └── 04-AI幻觉/          全套预览、制作.py、标题/正文
 ```
 
+维护用的文件不属于 Skill 流程：`CLAUDE.md`（给 Agent 的项目约定）、`tools/`（仓库检查、登记反馈）、`tests/`、`docs/`、`.github/`（CI 与反馈处理工作流）。
+
 示例只带全套预览、文案和制作脚本，原图、论文 PDF 和事实表没有放进仓库。
 
 ## 常见问题
@@ -193,6 +195,12 @@ cy-carousel/
 
 不推荐。那套出来的页面不如手排，`build.py` 只作为渲染和断行的底层库。
 </details>
+
+## 反馈
+
+遇到渲染问题或有想法，直接[提 issue](https://github.com/chengyi-ai/cy-carousel-skill/issues/new/choose)，渲染问题附上出问题那一页的截图。
+
+提交后 Agent 会自动读代码评估可行性，在 issue 下回复结论和实现思路；维护者确认后由 Agent 写代码、跑测试、提 PR，合并前一定有人审。社媒、群聊里的反馈也能登记进来，整套流程和配置见 [docs/agent-workflow.md](docs/agent-workflow.md)。
 
 ## 许可
 
