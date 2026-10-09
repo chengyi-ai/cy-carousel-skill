@@ -1,6 +1,6 @@
 <div align="center">
 
-![cy-carousel：把一个 AI 概念做成十页图文](assets/banner.jpg)
+![cy-carousel：把一个概念做成十页图文](assets/banner.jpg)
 
 # cy-carousel · 图文轮播 Skill
 
