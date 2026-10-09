@@ -711,7 +711,7 @@ def main():
     ap.add_argument('--pages', help='只排这几张，如 2,5（1是封面）')
     ap.add_argument('--capacity', action='store_true', help='只打印各文字栏每行大约能放几个字')
     a = ap.parse_args()
-    content = json.loads(a.content.read_text())
+    content = json.loads(a.content.read_text(encoding='utf-8'))
     root = a.content.resolve().parent
     accent = content.get('accent', '#5AA9E6')
     CFG['accent'] = accent
@@ -768,7 +768,7 @@ def main():
                     raise SystemExit(f'第{i}张排不下：{err}')
             tmp = work / f'P{i:02d}'; tmp.mkdir(parents=True, exist_ok=True)
             s = tmp / '页面脚本.json'
-            s.write_text(json.dumps({**script, 'pages': [p]}, ensure_ascii=False, indent=2))
+            s.write_text(json.dumps({**script, 'pages': [p]}, ensure_ascii=False, indent=2),encoding='utf-8')
             try:
                 rr = RD.render(s, tmp, assets_root=root)[0]
             except ValueError as err:
@@ -804,25 +804,25 @@ def main():
         print(f'{i:02d} {info["layout"]:<4} 空格子{blank}%', flush=True)
     # 只重排部分页时，其余页沿用上次的页面脚本；合并渲染报告，供 check_all / package 使用
     if a.pages and (out / '页面脚本.json').exists():
-        old = json.loads((out / '页面脚本.json').read_text())
+        old = json.loads((out / '页面脚本.json').read_text(encoding='utf-8'))
         merged = {k + 1: pg for k, pg in enumerate(old.get('pages', []))}
         merged.update({i: pg for i, pg in zip(only, script['pages'])})
         script['pages'] = [merged[k] for k in sorted(merged)]
-    (out / '页面脚本.json').write_text(json.dumps(script, ensure_ascii=False, indent=2))
+    (out / '页面脚本.json').write_text(json.dumps(script, ensure_ascii=False, indent=2),encoding='utf-8')
     target = root / '页面脚本.json'          # package.py 从选题目录读取；不覆盖别人手写的页面脚本
-    if not target.exists() or json.loads(target.read_text()).get('built_by') == 'build.py':
-        target.write_text(json.dumps(script, ensure_ascii=False, indent=2))
+    if not target.exists() or json.loads(target.read_text(encoding='utf-8')).get('built_by') == 'build.py':
+        target.write_text(json.dumps(script, ensure_ascii=False, indent=2),encoding='utf-8')
     else:
         warnings.append('选题目录里已有手写的页面脚本.json，没有覆盖；新脚本在输出目录里')
     reports = []
     for k in range(1, len(script['pages']) + 1):
         rp = work / f'P{k:02d}' / 'render-report.json'
         if rp.exists():
-            r = json.loads(rp.read_text())[0]; r['page'] = k; reports.append(r)
-    (out / 'render-report.json').write_text(json.dumps(reports, ensure_ascii=False, indent=2))
+            r = json.loads(rp.read_text(encoding='utf-8'))[0]; r['page'] = k; reports.append(r)
+    (out / 'render-report.json').write_text(json.dumps(reports, ensure_ascii=False, indent=2),encoding='utf-8')
     warnings += list(dict.fromkeys(ctx.get('warnings', [])))
     warnings += copy_checks(content)
-    (out / '排版报告.json').write_text(json.dumps({'pages': summary, 'warnings': warnings}, ensure_ascii=False, indent=2))
+    (out / '排版报告.json').write_text(json.dumps({'pages': summary, 'warnings': warnings}, ensure_ascii=False, indent=2),encoding='utf-8')
     inner = [r['blank_tiles'] for r in summary if r['page'] > 1]
     if inner:
         print(f'内页平均空格子 {sum(inner) / len(inner):.1f}%（目标≤22%）')

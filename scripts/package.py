@@ -13,8 +13,8 @@ def deliver(note,pages,out,report=None,assets_root=None,cover_c=None):
  if not result['passed']:raise ValueError('检查未通过，禁止交付：'+str(result['errors']))
  required=['标题.txt','正文.txt','置顶评论.txt','来源.md']
  for f in required:
-  if not (note/f).is_file() or not (note/f).read_text().strip():raise ValueError('缺文稿：'+f)
- data=json.loads((note/'页面脚本.json').read_text());out.mkdir(parents=True,exist_ok=True);files=[]
+  if not (note/f).is_file() or not (note/f).read_text(encoding='utf-8').strip():raise ValueError('缺文稿：'+f+'（打包需要分别命名的 '+'、'.join(required)+'，均为非空 UTF-8 文本）')
+ data=json.loads((note/'页面脚本.json').read_text(encoding='utf-8'));out.mkdir(parents=True,exist_ok=True);files=[]
  for i in range(1,len(data['pages'])+1):
   name='01-封面.png' if i==1 else f'{i:02}.png';source=pages/f'p{i:02}.png';target=out/name
   shutil.copy2(source,target);files.append(target)
@@ -29,9 +29,9 @@ def deliver(note,pages,out,report=None,assets_root=None,cover_c=None):
   with Image.open(p) as im:pic=cover_cell(im,cell,audit,source_name=p.name)
   x=gap+i%cols*(360+gap);y=gap+i//cols*(480+label+gap);grid.paste(pic,(x,y));d.text((x,y+485),f'{i+1:02}',fill='white')
  grid.save(out/'全套预览.jpg',quality=93)
- manifest={'technical_passed':True,'scope':result['scope'],'published':False,'human_review':'事实/许可/目检/盲测须另行验收','cover':'01-封面.png','preview_cells':audit,'files':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in files},'placeholder_account':data.get('config',{}).get('account_name','{账号名}')=='{账号名}'}
- (out/'交付清单.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2));return manifest
+ manifest={'technical_passed':True,'visual_acceptance':result.get('visual_acceptance'),'advisories':result.get('advisories',[]),'scope':result['scope'],'published':False,'human_review':'事实/许可/目检/盲测须另行验收','cover':'01-封面.png','preview_cells':audit,'files':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in files},'placeholder_account':data.get('config',{}).get('account_name','{账号名}')=='{账号名}'}
+ (out/'交付清单.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding='utf-8');return manifest
 
 if __name__=='__main__':
  ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--note',type=Path,required=True);ap.add_argument('--pages',type=Path,required=True);ap.add_argument('--out',type=Path,required=True);ap.add_argument('--report',type=Path);ap.add_argument('--assets-root',type=Path);ap.add_argument('--cover-c',type=Path);a=ap.parse_args()
- r=deliver(a.note,a.pages,a.out,a.report,a.assets_root,a.cover_c);print(json.dumps({'technical_passed':True,'scope':r['scope'],'images':len(r['files']),'published':False},ensure_ascii=False))
+ r=deliver(a.note,a.pages,a.out,a.report,a.assets_root,a.cover_c);print(json.dumps({'technical_passed':True,'visual_acceptance':result.get('visual_acceptance'),'advisories':result.get('advisories',[]),'scope':r['scope'],'images':len(r['files']),'published':False},ensure_ascii=False))

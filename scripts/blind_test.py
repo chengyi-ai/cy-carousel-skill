@@ -30,9 +30,9 @@ def build(reference_dir,candidate_dir,out,kind='inner',seed=20261004,reference_c
   answers.append({'cell':i,'pool':pool,'file':rel,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()})
  out.parent.mkdir(parents=True,exist_ok=True);canvas.save(out,quality=92)
  answer_dir=out.parent/'盲测答案';answer_dir.mkdir(exist_ok=True)
- (answer_dir/(out.stem+'.json')).write_text(json.dumps({'seed':seed,'kind':kind,'answers':answers,'cells':audit,'style_acceptance':'需要人工判断；机器只验证拼图几何'},ensure_ascii=False,indent=2))
+ (answer_dir/(out.stem+'.json')).write_text(json.dumps({'seed':seed,'kind':kind,'answers':answers,'cells':audit,'style_acceptance':'需要人工判断；机器只验证拼图几何'},ensure_ascii=False,indent=2),encoding='utf-8')
  return {'cells':count,'max_aspect_error':max(v['aspect_error_ratio'] for v in audit),'answer_file':str((answer_dir/(out.stem+'.json')).name)}
 
 if __name__=='__main__':
  ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--reference-dir',type=Path,required=True);ap.add_argument('--candidate-dir',type=Path,required=True);ap.add_argument('--out',type=Path,required=True);ap.add_argument('--kind',choices=['cover','inner'],default='inner');ap.add_argument('--seed',type=int,default=20261004);ap.add_argument('--reference-count',type=int,default=9);ap.add_argument('--candidate-count',type=int,default=4);ap.add_argument('--faces',type=Path);ap.add_argument('--reference-list',type=Path);a=ap.parse_args()
- print(build(a.reference_dir,a.candidate_dir,a.out,a.kind,a.seed,a.reference_count,a.candidate_count,json.loads(a.faces.read_text()) if a.faces else None,json.loads(a.reference_list.read_text()) if a.reference_list else None))
+ print(build(a.reference_dir,a.candidate_dir,a.out,a.kind,a.seed,a.reference_count,a.candidate_count,json.loads(a.faces.read_text(encoding='utf-8')) if a.faces else None,json.loads(a.reference_list.read_text(encoding='utf-8')) if a.reference_list else None))

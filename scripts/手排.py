@@ -16,7 +16,7 @@
 - 图层顺序：Canvas(split_shadow=True) + page(..., layer_order='text-under-images') 得到「底色 → 投影 → 文字 → 图片」。
 - emoji(text, size)：组合 emoji（1️⃣ 👉）用 AppKit 渲染成透明 PNG（scripts/emoji.swift，首次自动编译到 bin/）。
 """
-import json, math, random, subprocess, sys
+import json, math, random, shutil, subprocess, sys
 from pathlib import Path
 import pymupdf
 from PIL import Image, ImageDraw, ImageFilter, ImageOps
@@ -50,9 +50,16 @@ def init(note, protect=(), out='collage'):
     global NOTE, OUT, PROTECT
     NOTE = Path(note); OUT = NOTE / out; OUT.mkdir(parents=True, exist_ok=True)
     PROTECT = list(protect)
-    if not OCR.exists():
-        OCR.parent.mkdir(parents=True, exist_ok=True)
-        subprocess.run(['swiftc', '-O', str(HERE / 'ocrfind.swift'), '-o', str(OCR)], check=True)
+
+
+def _ensure_tool(binary, source, purpose):
+    """macOS 专用的 Swift 工具，真正用到时才编译；非 macOS 或没有 swiftc 时给出明确报错。"""
+    if binary.exists():
+        return
+    if sys.platform != 'darwin' or shutil.which('swiftc') is None:
+        raise RuntimeError(f'{purpose}依赖 macOS 的 Swift 工具链（swiftc），当前环境不可用；不需要{purpose}的手排功能不受影响')
+    binary.parent.mkdir(parents=True, exist_ok=True)
+    subprocess.run(['swiftc', '-O', str(HERE / source), '-o', str(binary)], check=True)
 
 
 # ---------------------------------------------------------------- 手绘圈、纸卡
@@ -140,7 +147,8 @@ def _rel(b, crop, size):
 
 def ocr(path, *terms):
     """Vision 词框：返回 [{term,line,box:[x0,y0,x1,y1]}]，0–1 左上原点。"""
-    r = subprocess.run([str(OCR), str(NOTE / path), *terms], capture_output=True, text=True, check=True)
+    _ensure_tool(OCR, 'ocrfind.swift', 'OCR 词框（ocrfind）')
+    r = subprocess.run([str(OCR), str(NOTE / path), *terms], capture_output=True, text=True, encoding='utf-8', check=True)
     out = json.loads(r.stdout)
     for o in out:
         x, y, w, h = o['box']; o['box'] = [x, y, x + w, y + h]
@@ -444,9 +452,7 @@ def emoji(text, size):
     """组合 emoji（1️⃣ 2️⃣ 👉 ⚠️ …）→ 透明 RGBA 图，墨迹裁边，高度约等于字号 size（px）。用 Canvas.put 摆。
     PIL 画不全 keycap 等组合序列，所以交给 AppKit（scripts/emoji.swift，首次自动编译到 bin/emoji）。"""
     import tempfile
-    if not EMOJI.exists():
-        EMOJI.parent.mkdir(parents=True, exist_ok=True)
-        subprocess.run(['swiftc', '-O', str(HERE / 'emoji.swift'), '-o', str(EMOJI)], check=True)
+    _ensure_tool(EMOJI, 'emoji.swift', '组合 emoji 渲染')
     with tempfile.TemporaryDirectory() as td:
         out = Path(td) / 'e.png'
         subprocess.run([str(EMOJI), text, str(out), str(size * 2)], check=True, capture_output=True)
@@ -489,7 +495,7 @@ def write_script(topic, built_by, path='页面脚本.json'):
               'config': {'tone': '暗', 'accent': CYAN, 'background': PAGE_BG, 'account_name': '程意', 'watermark_text': '程意',
                          'watermark_style': 'neutral', 'bookmark': False, 'cover_only': False, 'require_face_every_page': False},
               'delivery': {'main_cover': 'D', 'size': [W, H]}, 'pages': pages}
-    (NOTE / path).write_text(json.dumps(script, ensure_ascii=False, indent=1))
+    (NOTE / path).write_text(json.dumps(script, ensure_ascii=False, indent=1),encoding='utf-8')
     return len(pages)
 
 

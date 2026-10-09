@@ -39,8 +39,8 @@ def ocr_lines(path):
     with tempfile.TemporaryDirectory() as td:
         src = Path(td) / 'in'; src.mkdir()
         Image.open(path).convert('RGB').save(src / 'page.png')
-        subprocess.run([str(OCR), str(src), str(Path(td) / 'ocr.json')], capture_output=True, text=True, check=True)
-        res = json.loads((Path(td) / 'ocr.json').read_text())
+        subprocess.run([str(OCR), str(src), str(Path(td) / 'ocr.json')], capture_output=True, text=True, encoding='utf-8', check=True)
+        res = json.loads((Path(td) / 'ocr.json').read_text(encoding='utf-8'))
     out = []
     for o in (res[0].get('lines', []) if res else []):
         x, y, w, h = o['box']
@@ -236,7 +236,7 @@ def main():
     if a.json:
         a.json.write_text(json.dumps({'ref': str(a.ref), 'ours': str(a.ours), 'unit': '1440宽像素', 'rows': rows,
                                       'unmatched_ref': [m['text'] for m in miss_r], 'unmatched_ours': [m['text'] for m in miss_o]},
-                                     ensure_ascii=False, indent=1))
+                                     ensure_ascii=False, indent=1),encoding='utf-8')
     return 0
 
 

@@ -175,7 +175,7 @@ cy-carousel/
 <details>
 <summary><b>不是 macOS 能用吗？</b></summary>
 
-能。只有扫描书页找词（`scan_strip()` 依赖的 `ocrfind.swift`）和 `对照.py` 的 OCR 要 macOS Vision。找不到词时可以直接给 `scan_strip()` 传 0–1 的框；论文纸条走 PyMuPDF 矢量渲染，跨平台。
+能（Windows 同理）。脚本读写一律按 UTF-8，不再依赖系统默认编码；`S.init()` 不再编译 Swift 工具，OCR（`ocrfind`）和组合 emoji 只在真正用到时才编译，非 macOS 会给出明确报错。只有扫描书页找词（`scan_strip()` 依赖的 `ocrfind.swift`）和 `对照.py` 的 OCR 要 macOS Vision。找不到词时可以直接给 `scan_strip()` 传 0–1 的框；论文纸条走 PyMuPDF 矢量渲染，跨平台。
 </details>
 
 <details>

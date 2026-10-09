@@ -608,7 +608,7 @@ def default_elements(p):
 def render(script,out,width=1440,assets_root=None):
  from io_paths import set_assets_root
  set_assets_root(assets_root)
- data=json.loads(script.read_text());cfg={'accent':'#FCF374','background':'#000000','account_name':'{账号名}','series_name':'{系列名}','bookmark':False,'watermark_style':'neutral',**data.get('config',{})}
+ data=json.loads(script.read_text(encoding='utf-8'));cfg={'accent':'#FCF374','background':'#000000','account_name':'{账号名}','series_name':'{系列名}','bookmark':False,'watermark_style':'neutral',**data.get('config',{})}
  if width!=1440:raise ValueError('成品固定1440×1920；预览另用拼图脚本等比裁切')
  W=width;H=width*4//3;out.mkdir(parents=True,exist_ok=True);reports=[]
  for i,p in enumerate(data['pages'],1):
@@ -692,7 +692,7 @@ def render(script,out,width=1440,assets_root=None):
   path=out/f'p{i:02}.png';im.convert('RGB').save(path);reports.append({'page':i,'layout':p['layout'],'size':[W,H],'sha256':hashlib.sha256(path.read_bytes()).hexdigest(),'text':audit,'collisions':collisions,
    'page_script_sha256':hashlib.sha256(json.dumps(p,ensure_ascii=False,sort_keys=True).encode()).hexdigest(),'config_script_sha256':hashlib.sha256(json.dumps(data.get('config',{}),ensure_ascii=False,sort_keys=True).encode()).hexdigest(),'image_transforms':transform_audit,'images':image_audit,'components':component_audit,'watermark':wm,'image_elements':sum(v['visible'] for v in image_audit),
    'image_area_ratio':round(coverage.histogram()[255]/(W*H),6)})
- (out/'render-report.json').write_text(json.dumps(reports,ensure_ascii=False,indent=2));return reports
+ (out/'render-report.json').write_text(json.dumps(reports,ensure_ascii=False,indent=2),encoding='utf-8');return reports
 if __name__=='__main__':
  a=argparse.ArgumentParser(description='渲染可编辑页面脚本；默认素材路径相对脚本，可显式传素材根目录')
  a.add_argument('script',type=Path);a.add_argument('--out',type=Path,required=True)
