@@ -1,6 +1,6 @@
 <div align="center">
 
-![cy-carousel：把一个 AI 概念做成十页图文](assets/banner.jpg)
+![cy-carousel：把一个概念做成十页图文](assets/banner.jpg)
 
 # cy-carousel · 图文轮播 Skill
 
@@ -158,8 +158,7 @@ cy-carousel/
 │   └── 排字细节.md         正文字体候选、标点混排、两端对齐、横向压缩、图层顺序、对照测量
 ├── assets/
 │   ├── banner.jpg         README 头图
-│   ├── fonts/             Noto Serif SC、Noto Sans SC、马善政、霞鹜文楷（附 OFL 许可证）
-│   └── templates/         标题、正文、置顶评论、来源模板
+│   └── fonts/             Noto Serif SC、Noto Sans SC、马善政、霞鹜文楷（附 OFL 许可证）
 └── examples/
     ├── 01-ELIZA/          暗底样板：全套预览、逐页文案
     ├── 02-Dots/           浅色纸底样板：全套预览、逐页文案
