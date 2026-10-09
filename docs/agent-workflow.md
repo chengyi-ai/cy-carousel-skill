@@ -31,6 +31,7 @@
 | ③ 编码 | `agent-implement.yml` | 满足自动条件、维护者加 `agent:implement`、手动运行 | 改动 + 测试，跑通 `tools/validate_repo.py` 与 `unittest` |
 | ④ PR | `.github/scripts/open_agent_pr.sh` | ③ 完成后 | `agent/issue-N` 分支上的 PR，`Closes #N`；测试失败则提交为草稿 |
 | ⑤ 审查 | `validate.yml`、`agent-review.yml`、`claude.yml` | PR 打开/更新；维护者 `@claude` | CI 结果、Agent 行内审查意见；`@claude` 可按意见继续改 |
+| 收尾 | `agent-cleanup.yml` | PR 关闭 | 合并后摘掉关联 issue 上的 `agent:*`、`status:awaiting-maintainer` 过程标签；未合并就关闭只摘 `agent:pr-open` |
 
 CI（`validate.yml`）在 Linux 上跑：仓库检查、单元测试，以及用随包字体渲染一页样张的冒烟测试。依赖 macOS Vision 的 Swift 工具不在 CI 范围内。
 
