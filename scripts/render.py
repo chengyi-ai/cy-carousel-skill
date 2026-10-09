@@ -59,6 +59,8 @@ def find_system_font(name):
     except OSError:break
     if f.getname()==want:return (Path(path),i,None)
  raise FileNotFoundError(f'找不到正文字体 {name}：{[p for p,_ in SYSTEM_FONTS[name]]}。换一款字体，或把字库（如 LXGW WenKai，OFL）放进 assets/fonts/')
+# 仅用于拉丁字母和数字的辅助字体：找不到 Times New Roman 时回退随包 Noto Serif SC 并警告，其余正文字体仍报错
+LATIN_FALLBACKS={'serif-latin':400,'serif-latin-bold':700}
 LAYOUTS={'cover','story','split','collage','points','quote','full','ending'}
 from functools import lru_cache
 @lru_cache(maxsize=96)
@@ -80,10 +82,18 @@ def load_font(path,size,index,weight):
 def warn_title_fallback(reason):
  warnings.warn('授权标题字体配置错误：'+reason+'；headline / cover-title / heading 回退到 v6 的 Noto Serif SC Bold700。本次未使用所配置的授权字库。',RuntimeWarning,stacklevel=3)
 
+@lru_cache(maxsize=8)
+def warn_latin_fallback(name):
+ warnings.warn(f'找不到 {name} 对应的 Times New Roman，拉丁字母和数字回退到随包的 Noto Serif SC。',RuntimeWarning,stacklevel=4)
+
 def resolved_font(name,size,config):
  """返回实际字库与审计信息；授权入口只覆盖三个标题key，不影响正文。"""
  size=max(1,int(size))
- if name not in FONTS and name in SYSTEM_FONTS:FONTS[name]=find_system_font(name)
+ if name not in FONTS and name in SYSTEM_FONTS:
+  try:FONTS[name]=find_system_font(name)
+  except FileNotFoundError:
+   if name not in LATIN_FALLBACKS:raise
+   FONTS[name]=(FONT_ROOT/'NotoSerifSC[wght].ttf',0,LATIN_FALLBACKS[name]);warn_latin_fallback(name)
  p,i,weight=FONTS[name];override=config.get('fonts',{}).get(name,{})
  p,i,weight=override.get('path',p),override.get('index',i),override.get('weight',weight)
  if override.get('path'):p=asset_path(Path.cwd(),p)
@@ -106,7 +116,9 @@ def resolved_font(name,size,config):
    reason=f'{requested!s}（index={requested_index}, weight={requested_weight}）：{exc}';warn_title_fallback(reason)
    p,i,weight=FONTS['serif-bold']
    return load_font(str(p),size,i,weight),{'path':str(p),'index':i,'weight':weight,'source':'v6-fallback','fallback':True,'requested_path':str(requested),'requested_index':requested_index,'requested_weight':requested_weight,'error':reason}
- return load_font(str(p),size,i,weight),{'path':str(p),'index':i,'weight':weight,'source':'override' if override else 'builtin','fallback':False}
+ fallback=name in LATIN_FALLBACKS and not override and Path(p)==FONT_ROOT/'NotoSerifSC[wght].ttf'
+ source='latin-fallback' if fallback else 'override' if override else 'builtin'
+ return load_font(str(p),size,i,weight),{'path':str(p),'index':i,'weight':weight,'source':source,'fallback':fallback}
 
 def font(name,size,config):return resolved_font(name,size,config)[0]
 
