@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-from io_paths import asset_path
 """1440x1920, JSON page script -> PNG. Coordinates normalized, text stays editable."""
+from io_paths import asset_path
 from PIL import Image,ImageDraw,ImageFont,ImageOps,ImageEnhance,ImageFilter,ImageChops
 from pathlib import Path
 from 图像等比 import ratio_audit,fit_geometry
 from 保脸裁切 import local_faces,safe_focus
 import argparse,json,re,math,random,hashlib,warnings,colorsys
+import numpy as np
 FONT_ROOT=Path(__file__).resolve().parents[1]/'assets/fonts'
 SKILL_ROOT=Path(__file__).resolve().parents[1]
 TITLE_FONT_KEYS={'headline','cover-title','heading'}
@@ -144,6 +145,7 @@ def missing_glyph(face,char):
  mask,tofu=face.getmask(char),face.getmask(chr(0x10ffff))
  return mask.size==tofu.size and bytes(mask)==bytes(tofu)
 
+@lru_cache(maxsize=16384)
 def ink_box(face,char,stroke=0):
  mask,offset=face.getmask2(char,anchor='ls',stroke_width=stroke)
  bounds=mask.getbbox()
@@ -484,7 +486,7 @@ def processed_image(e,base,target,cfg,audit=None):
   im=(ImageOps.colorize(gray,'#251e12','#efe3c9') if 'sepia' in fx else gray.convert('RGB')).convert('RGBA');im.putalpha(alpha)
  if 'aged' in fx:
   rgb=ImageEnhance.Color(im.convert('RGB')).enhance(.6);im=rgb.convert('RGBA');im.putalpha(alpha)
-  rng=random.Random(19);noise=Image.new('RGB',im.size);noise.putdata([(v,v,v) for v in [rng.randrange(65,195) for _ in range(im.width*im.height)]])
+  noise=Image.fromarray(np.random.default_rng(19).integers(65,195,(im.height,im.width,3),dtype=np.uint8),'RGB')
   im=Image.blend(im,noise.convert('RGBA'),.045);im.putalpha(alpha)
  if e.get('saturation',1)!=1:
   factor=e['saturation']
@@ -696,5 +698,5 @@ def render(script,out,width=1440,assets_root=None):
 if __name__=='__main__':
  a=argparse.ArgumentParser(description='渲染可编辑页面脚本；默认素材路径相对脚本，可显式传素材根目录')
  a.add_argument('script',type=Path);a.add_argument('--out',type=Path,required=True)
- a.add_argument('--assets-root',type=Path);a.add_argument('--width',type=int,default=1440)
- v=a.parse_args();print('Rendered',len(render(v.script.resolve(),v.out.resolve(),v.width,v.assets_root)),'pages')
+ a.add_argument('--assets-root',type=Path)
+ v=a.parse_args();print('Rendered',len(render(v.script.resolve(),v.out.resolve(),assets_root=v.assets_root)),'pages')

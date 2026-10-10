@@ -44,6 +44,16 @@ BODY_FONTS = {
 NOTE = OUT = None
 PROTECT = []
 pages = []
+PDF_DOCS = {}
+
+
+def _doc(pdf):
+    """同一 PDF 一次手排会话只 open 一次；snap/pdf_crop/find/strip 都走这里，别每个辅助函数各开一遍。"""
+    p = str(NOTE / pdf)
+    d = PDF_DOCS.get(p)
+    if d is None:
+        d = PDF_DOCS[p] = pymupdf.open(p)
+    return d
 
 
 def init(note, protect=(), out='collage'):
@@ -162,10 +172,12 @@ def scan_strip(path, crop, target_w, circles=(), unders=(), whiteout=(), bars=()
     fill = paper or _paper(im)
     ImageDraw.Draw(im).rectangle([0, 0, im.width, 5], fill=fill)            # 上下边 6px 刷成纸色：去掉相邻行露出来的笔画碎片
     ImageDraw.Draw(im).rectangle([0, im.height - 6, im.width, im.height], fill=fill)
+    terms = [t for t in (*whiteout, *circles, *unders, *bars) if isinstance(t, str)]
+    ocr_hits = ocr(path, *terms) if terms else []          # ocrfind 一次收多个词，别一个词跑一遍 Vision
     def box_of(c):
         if not isinstance(c, str):
             return c
-        hits = [o for o in ocr(path, c) if _inside(o['box'], crop)]
+        hits = [o for o in ocr_hits if o['term'] == c and _inside(o['box'], crop)]
         if not hits:
             raise ValueError(f'OCR 在裁区里找不到「{c}」')
         return hits[0]['box']
@@ -204,7 +216,7 @@ def _paper(im):
 
 
 def pdf_crop(pdf, pno, rect, zoom=6):
-    d = pymupdf.open(NOTE / pdf); p = d[pno]
+    p = _doc(pdf)[pno]
     pw, ph = p.rect.width, p.rect.height
     clip = pymupdf.Rect(rect[0] * pw, rect[1] * ph, rect[2] * pw, rect[3] * ph)
     pix = p.get_pixmap(matrix=pymupdf.Matrix(zoom, zoom), clip=clip)
@@ -215,14 +227,14 @@ def pdf_crop(pdf, pno, rect, zoom=6):
 
 
 def find(pdf, pno, phrase, nth=0):
-    p = pymupdf.open(NOTE / pdf)[pno]
+    p = _doc(pdf)[pno]
     r = p.search_for(phrase)[nth]
     return [r.x0 / p.rect.width, r.y0 / p.rect.height, r.x1 / p.rect.width, r.y1 / p.rect.height]
 
 
 def snap(pdf, pno, rect):
     """左右边挪到最近的词间空白，不切半个词。"""
-    p = pymupdf.open(NOTE / pdf)[pno]
+    p = _doc(pdf)[pno]
     pw, ph = p.rect.width, p.rect.height
     ws = [(w[0] / pw, w[2] / pw) for w in p.get_text('words') if rect[1] < (w[1] + w[3]) / 2 / ph < rect[3]]
     ok = lambda x: not any(a < x < b for a, b in ws)
@@ -235,7 +247,7 @@ def snap(pdf, pno, rect):
 def strip(pdf, pno, rect, target_w, circles=(), cyan=(), unders=(), whiteout=(), rotate=0.0, pad=18, vpad=None):
     """论文里一两行原文，按目标宽度矢量渲染，关键词画红圈，做成白色纸条。边上切开的半个词涂白。"""
     rect = snap(pdf, pno, rect)
-    pg = pymupdf.open(NOTE / pdf)[pno]
+    pg = _doc(pdf)[pno]
     zoom = (target_w - 2 * pad) / ((rect[2] - rect[0]) * pg.rect.width)
     im, f = pdf_crop(pdf, pno, rect, zoom=zoom)
     dr = ImageDraw.Draw(im)
@@ -440,7 +452,11 @@ def page(collage, els, layout='collage', backdrop=None, layer_order='default'):
     col = [img(collage)] if collage else []
     if layer_order == 'text-under-images' and collage:
         sh = str(Path(collage).with_name(Path(collage).stem + '_shadow.png'))
-        under = [img(sh, coverage=False)] if (NOTE / sh).exists() else []
+        if (NOTE / sh).exists():
+            under = [img(sh, coverage=False)]
+        else:
+            print(f'提示：{sh} 不存在（Canvas 要 split_shadow=True 存），这页拼贴没有投影层', file=sys.stderr)
+            under = []
         return {'layout': layout, 'background': PAGE_BG, 'watermark': layout != 'cover', 'layer_order': layer_order,
                 'elements': bgs + under + els + [img(collage, above_text=True)]}
     if layer_order not in ('default', 'text-under-images'):
@@ -492,7 +508,7 @@ def font_sample(text, out, fonts=tuple(BODY_FONTS), size=60, w=1360, bg=PAGE_BG,
 
 def write_script(topic, built_by, path='页面脚本.json'):
     script = {'schema_version': 1, 'built_by': built_by, 'topic': topic, 'tone': '暗', 'mode': 'production',
-              'config': {'tone': '暗', 'accent': CYAN, 'background': PAGE_BG, 'account_name': '程意', 'watermark_text': '程意',
+              'config': {'tone': '暗', 'accent': CYAN, 'background': PAGE_BG, 'account_name': '账号名', 'watermark_text': '账号名',
                          'watermark_style': 'neutral', 'bookmark': False, 'cover_only': False, 'require_face_every_page': False},
               'delivery': {'main_cover': 'D', 'size': [W, H]}, 'pages': pages}
     (NOTE / path).write_text(json.dumps(script, ensure_ascii=False, indent=1),encoding='utf-8')
