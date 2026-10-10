@@ -30,7 +30,7 @@ def red_lines(n,p,r):
    if b and (b[1]<40 or b[3]>1895):out.append(f'P{n:02}文字贴着页面上下边（页眉/页脚）：{t["text"][:12]}')
    rows={}
    for g in t.get('glyphs') or []:rows.setdefault(g['line'],[]).append(g['char'])
-   if len(rows)>1 and any(len([c for c in v if c not in '，。、：；！？…」』》）,.!?:;']) <2 for v in rows.values()):
+   if len(rows)>1 and any(len([c for c in v if c not in '，。、：；！？…—·」』》）,.!?:;']) <2 for v in rows.values()):
     out.append(f'P{n:02}有孤字行：{t["text"][:12]}')
  return out
 
@@ -52,6 +52,7 @@ def check_note(script,pages,report=None,assets_root=None,products=False,strict_v
    t=next((v for v in reports[0].get('text',[]) if v['text']==titles[-1]['text'] and v['box']==titles[-1]['box']),{})
    b=t.get('effect_bounds') or t.get('ink_bounds')
    if not b or min(b[0],b[1],1440-b[2],1920-b[3])<60:errors.append('D第二行实际字形/阴影与边框须≥60px')
+ expected=hashlib.sha256(json.dumps(data.get('config',{}),ensure_ascii=False,sort_keys=True).encode()).hexdigest()
  for n,p in enumerate(data['pages'],1):
   r=next((v for v in reports if v['page']==n),{})
   cfg=page_config(data.get('config',{}),p);cfg['tone']=normalize_tone(data.get('tone',cfg.get('tone','暗')))
@@ -59,7 +60,6 @@ def check_note(script,pages,report=None,assets_root=None,products=False,strict_v
   if not target.is_file():errors.append(f'P{n:02}缺成图');continue
   with Image.open(target) as im:
    if im.size!=(1440,1920):errors.append(f'P{n:02}成品必须1440×1920')
-  expected=hashlib.sha256(json.dumps(data.get('config',{}),ensure_ascii=False,sort_keys=True).encode()).hexdigest()
   if r.get('config_script_sha256')!=expected:errors.append(f'P{n:02}配置与渲染报告不一致')
   if any(v['opaque_overlap']>.03 for v in r.get('collisions',[])):errors.append(f'P{n:02}文字与抠图碰撞>3%')
   for e in p.get('elements',default_elements(p)):
