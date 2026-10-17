@@ -107,6 +107,10 @@ class PdfDocCacheTest(unittest.TestCase):
                 self.assertEqual(len(opens), 1)
             finally:
                 S.pymupdf.open = real_open
+                # 临时目录清理前关掉缓存的 PDF：Windows 上文件被占用时删不掉（WinError 32）。
+                for d in S.PDF_DOCS.values():
+                    d.close()
+                S.PDF_DOCS.clear()
                 S.NOTE, S.OUT, S.PROTECT, S.pages = saved[0], saved[1], saved[2], saved[3]
 
     def test_init_closes_cached_pdfs(self):
