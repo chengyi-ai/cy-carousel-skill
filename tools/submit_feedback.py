@@ -59,7 +59,7 @@ def main(argv=None):
         headers={
             "Accept": "application/vnd.github+json",
             "Authorization": f"Bearer {args.token}",
-            "X-GitHub-Api-Version": "2022-11-28",
+            "X-GitHub-Api-Version": "2026-03-10",
         },
     )
     try:
