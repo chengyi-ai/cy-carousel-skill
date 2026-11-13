@@ -628,7 +628,13 @@ def page_inputs_sha256(p,i,data,base):
   elif isinstance(obj,list):
    for v in obj:walk(v)
  walk(p)
- key={'page':i,'spec':p,'config':data.get('config',{}),'tone':data.get('tone'),'assets':assets,'renderer':renderer_sha256()}
+ # 配置里的外接字库（fonts.*.path、fonts.licensed_headline.path）按当前目录解析，同样记大小和修改时间
+ fonts=[]
+ for name,v in sorted((data.get('config',{}).get('fonts') or {}).items()):
+  if isinstance(v,dict) and isinstance(v.get('path'),str):
+   f=asset_path(Path.cwd(),v['path']);st=f.stat() if f.is_file() else None
+   fonts.append([name,str(f),st.st_size if st else None,st.st_mtime_ns if st else None])
+ key={'page':i,'fonts':fonts,'spec':p,'config':data.get('config',{}),'tone':data.get('tone'),'assets':assets,'renderer':renderer_sha256()}
  return hashlib.sha256(json.dumps(key,ensure_ascii=False,sort_keys=True).encode()).hexdigest()
 def reusable(old,path,inputs):
  if not old or old.get('inputs_sha256')!=inputs or not path.is_file():return False

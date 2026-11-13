@@ -68,6 +68,17 @@ class IncrementalRenderTests(unittest.TestCase):
         os.utime(path, ns=(stat.st_atime_ns, stat.st_mtime_ns + 1_000_000_000))
         self.assertEqual(self.render(changed_only=True), [3])
 
+    def test_replaced_config_font_renders_every_page(self):
+        font = self.note / 'title.ttf'
+        font.write_bytes((ROOT / 'assets/fonts/MaShanZheng-Regular.ttf').read_bytes())
+        self.data['config']['fonts'] = {'licensed_headline': {'path': str(font)}}
+        self.write()
+        self.assertEqual(self.render(changed_only=True), [1, 2, 3])
+        self.assertEqual(self.render(changed_only=True), [])
+        stat = font.stat()
+        os.utime(font, ns=(stat.st_atime_ns, stat.st_mtime_ns + 1_000_000_000))
+        self.assertEqual(self.render(changed_only=True), [1, 2, 3])
+
     def test_tampered_output_is_rendered_again(self):
         Image.new('RGB', (1440, 1920)).save(self.note / 'pages/p02.png')
         self.assertEqual(self.render(changed_only=True), [2])
