@@ -607,14 +607,49 @@ def default_elements(p):
  elif l=='ending':tx(t,[.07,.06,.86,.2],114,font='headline');tx(body,[.10,.3,.8,.21],align='center');pic(0,[.12,.55,.76,.39])
  return els
 
-def render(script,out,width=1440,assets_root=None):
+ASSET_KEYS=('path','mask','subject_mask','cutout_path')
+# 渲染结果取决于这些源码；改了任何一个，增量渲染的旧结果全部作废。
+RENDER_SOURCES=('render.py','io_paths.py','图像等比.py','保脸裁切.py')
+@lru_cache(maxsize=1)
+def renderer_sha256():
+ h=hashlib.sha256()
+ for name in RENDER_SOURCES:h.update((Path(__file__).resolve().parent/name).read_bytes())
+ return h.hexdigest()
+def page_inputs_sha256(p,i,data,base):
+ """增量渲染的指纹：页面脚本、全局配置、页序、素材文件（大小和修改时间）、渲染源码，任何一项变了就重渲。"""
+ assets=[]
+ def walk(obj):
+  if isinstance(obj,dict):
+   for k,v in obj.items():
+    if k in ASSET_KEYS and isinstance(v,str):
+     f=asset_path(base,v);st=f.stat() if f.is_file() else None
+     assets.append([k,v,str(f),st.st_size if st else None,st.st_mtime_ns if st else None])
+    else:walk(v)
+  elif isinstance(obj,list):
+   for v in obj:walk(v)
+ walk(p)
+ key={'page':i,'spec':p,'config':data.get('config',{}),'tone':data.get('tone'),'assets':assets,'renderer':renderer_sha256()}
+ return hashlib.sha256(json.dumps(key,ensure_ascii=False,sort_keys=True).encode()).hexdigest()
+def reusable(old,path,inputs):
+ if not old or old.get('inputs_sha256')!=inputs or not path.is_file():return False
+ return hashlib.sha256(path.read_bytes()).hexdigest()==old.get('sha256')
+
+def render(script,out,width=1440,assets_root=None,changed_only=False):
+ """changed_only=True：只重渲指纹变了的页，其余页沿用上一次的成图和报告（成图 SHA256 对不上也重渲）。"""
  from io_paths import set_assets_root
  set_assets_root(assets_root)
  data=json.loads(script.read_text(encoding='utf-8'));cfg={'accent':'#FCF374','background':'#000000','account_name':'{账号名}','series_name':'{系列名}','bookmark':False,'watermark_style':'neutral',**data.get('config',{})}
  if width!=1440:raise ValueError('成品固定1440×1920；预览另用拼图脚本等比裁切')
  W=width;H=width*4//3;out.mkdir(parents=True,exist_ok=True);reports=[]
+ previous={}
+ if changed_only and (out/'render-report.json').is_file():
+  try:previous={r['page']:r for r in json.loads((out/'render-report.json').read_text(encoding='utf-8'))}
+  except (ValueError,KeyError,TypeError):previous={}
  for i,p in enumerate(data['pages'],1):
   if p['layout'] not in LAYOUTS:raise ValueError('未知版式 '+p['layout'])
+  inputs=page_inputs_sha256(p,i,data,script.parent)
+  if changed_only and reusable(previous.get(i),out/f'p{i:02}.png',inputs):
+   reports.append({**previous[i],'reused':True});continue
   pcfg=page_config(cfg,p);pcfg['tone']=normalize_tone(data.get('tone',pcfg.get('tone','暗')));im=Image.new('RGBA',(W,H),p.get('background',pcfg['background']));audit=[]
   if p.get('paper_texture'):
    rng=random.Random(817);grain=Image.new('L',(144,192));grain.putdata([rng.randrange(90,170) for _ in range(144*192)])
@@ -693,10 +728,16 @@ def render(script,out,width=1440,assets_root=None):
   else:wm=None
   path=out/f'p{i:02}.png';im.convert('RGB').save(path);reports.append({'page':i,'layout':p['layout'],'size':[W,H],'sha256':hashlib.sha256(path.read_bytes()).hexdigest(),'text':audit,'collisions':collisions,
    'page_script_sha256':hashlib.sha256(json.dumps(p,ensure_ascii=False,sort_keys=True).encode()).hexdigest(),'config_script_sha256':hashlib.sha256(json.dumps(data.get('config',{}),ensure_ascii=False,sort_keys=True).encode()).hexdigest(),'image_transforms':transform_audit,'images':image_audit,'components':component_audit,'watermark':wm,'image_elements':sum(v['visible'] for v in image_audit),
-   'image_area_ratio':round(coverage.histogram()[255]/(W*H),6)})
+   'image_area_ratio':round(coverage.histogram()[255]/(W*H),6),'inputs_sha256':inputs,'reused':False})
+ for stale in sorted(out.glob('p*.png')):
+  m=re.fullmatch(r'p(\d+)\.png',stale.name)
+  if changed_only and m and int(m.group(1))>len(data['pages']):stale.unlink()   # 删了页：清掉多出来的旧成图，免得预览拼进去
  (out/'render-report.json').write_text(json.dumps(reports,ensure_ascii=False,indent=2),encoding='utf-8');return reports
 if __name__=='__main__':
  a=argparse.ArgumentParser(description='渲染可编辑页面脚本；默认素材路径相对脚本，可显式传素材根目录')
  a.add_argument('script',type=Path);a.add_argument('--out',type=Path,required=True)
  a.add_argument('--assets-root',type=Path)
- v=a.parse_args();print('Rendered',len(render(v.script.resolve(),v.out.resolve(),assets_root=v.assets_root)),'pages')
+ a.add_argument('--changed-only',action='store_true',help='只重渲页面脚本、配置、素材或渲染代码变了的页，其余页沿用上次结果')
+ v=a.parse_args();r=render(v.script.resolve(),v.out.resolve(),assets_root=v.assets_root,changed_only=v.changed_only)
+ done=[x['page'] for x in r if not x.get('reused')]
+ print('Rendered',len(done),'of',len(r),'pages'+(f"（重渲：{','.join(f'p{n:02}' for n in done) or '无'}）" if v.changed_only else ''))

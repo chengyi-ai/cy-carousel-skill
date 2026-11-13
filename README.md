@@ -132,6 +132,7 @@ S.write_script('题目', '制作.py', account='你的账号名')   # 生成 页�
 
 ```bash
 python3 scripts/render.py 页面脚本.json --out pages --assets-root .
+python3 scripts/render.py 页面脚本.json --out pages --assets-root . --changed-only   # 之后每轮：只重渲改过的页
 python3 scripts/check_all.py 页面脚本.json --pages pages --assets-root .   # errors 必须为零
 python3 scripts/package.py --note . --pages pages --out 交付 --assets-root .
 # 可选严格视觉（默认关闭）：留白超标/连续同骨架时拒绝交付；目检后可 --accept-visual "理由" 放行并写入清单
@@ -186,6 +187,12 @@ cy-carousel/
 <summary><b>封面毛笔字里的「AI」看着像「刈」？</b></summary>
 
 用 `headline()` 写标题就不会：英文和数字会自动换成黑体（`render.py` 的 `latin_font`）。
+</details>
+
+<details>
+<summary><b>做一版太慢了？</b></summary>
+
+脚本本身不慢（11 页渲染约 6 秒、检查约 10 秒），时间主要花在 Agent 的来回上。`SKILL.md` 的「省时间」一节列了不放宽红线也能省时间的做法：题目已定就不列候选、查证和找素材并行、问题攒一批再改。之后每轮修改用 `render.py --changed-only`，只重渲改过的页。
 </details>
 
 <details>
