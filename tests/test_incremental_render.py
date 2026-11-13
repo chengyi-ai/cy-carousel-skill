@@ -116,6 +116,15 @@ class IncrementalRenderTests(unittest.TestCase):
         self.assertEqual(self.render(changed_only=True), [])
         self.assertFalse((self.note / 'pages/p03.png').exists())
 
+    def test_full_render_also_drops_stale_output(self):
+        other = self.note / 'pages/p3-草稿.png'
+        other.write_bytes(b'not a page')
+        del self.data['pages'][2]
+        self.write()
+        self.assertEqual(self.render(), [1, 2])
+        self.assertFalse((self.note / 'pages/p03.png').exists())
+        self.assertTrue(other.exists())
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -736,8 +736,8 @@ def render(script,out,width=1440,assets_root=None,changed_only=False):
    'page_script_sha256':hashlib.sha256(json.dumps(p,ensure_ascii=False,sort_keys=True).encode()).hexdigest(),'config_script_sha256':hashlib.sha256(json.dumps(data.get('config',{}),ensure_ascii=False,sort_keys=True).encode()).hexdigest(),'image_transforms':transform_audit,'images':image_audit,'components':component_audit,'watermark':wm,'image_elements':sum(v['visible'] for v in image_audit),
    'image_area_ratio':round(coverage.histogram()[255]/(W*H),6),'inputs_sha256':inputs,'reused':False})
  for stale in sorted(out.glob('p*.png')):
-  m=re.fullmatch(r'p(\d+)\.png',stale.name)
-  if changed_only and m and int(m.group(1))>len(data['pages']):stale.unlink()   # 删了页：清掉多出来的旧成图，免得预览拼进去
+  m=re.fullmatch(r'p(\d{2,})\.png',stale.name)
+  if m and int(m.group(1))>len(data['pages']):stale.unlink()   # 删了页：清掉多出来的旧成图，免得预览和打包拼进去
  (out/'render-report.json').write_text(json.dumps(reports,ensure_ascii=False,indent=2),encoding='utf-8');return reports
 if __name__=='__main__':
  a=argparse.ArgumentParser(description='渲染可编辑页面脚本；默认素材路径相对脚本，可显式传素材根目录')
