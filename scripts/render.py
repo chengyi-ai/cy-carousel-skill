@@ -628,9 +628,9 @@ def page_inputs_sha256(p,i,data,base):
   elif isinstance(obj,list):
    for v in obj:walk(v)
  walk(p)
- # 配置里的外接字库（fonts.*.path、fonts.licensed_headline.path）按当前目录解析，同样记大小和修改时间
+ # 配置里的外接字库（全局 config.fonts 合并页面 config.fonts，与 page_config 一致）按当前目录解析，同样记大小和修改时间
  fonts=[]
- for name,v in sorted((data.get('config',{}).get('fonts') or {}).items()):
+ for name,v in sorted((page_config(data.get('config',{}),p).get('fonts') or {}).items()):
   if isinstance(v,dict) and isinstance(v.get('path'),str):
    f=asset_path(Path.cwd(),v['path']);st=f.stat() if f.is_file() else None
    fonts.append([name,str(f),st.st_size if st else None,st.st_mtime_ns if st else None])

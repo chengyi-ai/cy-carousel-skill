@@ -79,6 +79,29 @@ class IncrementalRenderTests(unittest.TestCase):
         os.utime(font, ns=(stat.st_atime_ns, stat.st_mtime_ns + 1_000_000_000))
         self.assertEqual(self.render(changed_only=True), [1, 2, 3])
 
+    def test_replaced_page_font_renders_that_page(self):
+        # 不传素材根目录时，字库按当前目录解析、素材按脚本目录解析；字库放在另一个目录里，
+        # 才能测出页面级 config.fonts 有没有进指纹（只扫页面里的 path 会找错目录）
+        fonts = self.note / 'fonts'
+        fonts.mkdir()
+        font = fonts / 'page.ttf'
+        font.write_bytes((ROOT / 'assets/fonts/MaShanZheng-Regular.ttf').read_bytes())
+        cwd = os.getcwd()
+        os.chdir(fonts)
+        self.addCleanup(os.chdir, cwd)
+        self.data['pages'][0]['config'] = {'fonts': {'licensed_headline': {'path': 'page.ttf'}}}
+        self.write()
+
+        def changed():
+            reports = render.render(self.note / '页面脚本.json', self.note / 'pages', changed_only=True)
+            return [r['page'] for r in reports if not r['reused']]
+
+        self.assertEqual(changed(), [1])
+        self.assertEqual(changed(), [])
+        stat = font.stat()
+        os.utime(font, ns=(stat.st_atime_ns, stat.st_mtime_ns + 1_000_000_000))
+        self.assertEqual(changed(), [1])
+
     def test_tampered_output_is_rendered_again(self):
         Image.new('RGB', (1440, 1920)).save(self.note / 'pages/p02.png')
         self.assertEqual(self.render(changed_only=True), [2])
